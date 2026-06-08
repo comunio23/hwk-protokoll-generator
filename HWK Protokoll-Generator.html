@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HWK Protokoll-Generator</title>
+<style>
+:root {
+  --primary:#1a3a5c; --pl:#234d7a; --bg:#f0f2f7; --card:#fff;
+  --border:#dde1ea; --text:#1e2532; --muted:#6b7280;
+  --ok:#15803d; --danger:#dc2626; --r:10px;
+  --sh:0 2px 10px rgba(0,0,0,.07); --shl:0 4px 20px rgba(0,0,0,.12);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+header{background:linear-gradient(135deg,var(--primary),var(--pl));color:#fff;padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(0,0,0,.18);position:sticky;top:0;z-index:100}
+header h1{font-size:1rem;font-weight:700;display:flex;align-items:center;gap:9px}
+.hbadge{font-size:.68rem;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.28);border-radius:20px;padding:2px 9px}
+nav{background:#fff;border-bottom:1px solid var(--border);display:flex;padding:0 28px}
+nav button{padding:0 18px;height:44px;border:none;background:none;cursor:pointer;font-size:.84rem;color:var(--muted);border-bottom:3px solid transparent;font-weight:500;transition:all .2s;font-family:inherit;display:flex;align-items:center;gap:6px}
+nav button:hover{color:var(--primary)}
+nav button.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:700}
+.container{max-width:1040px;margin:0 auto;padding:24px 28px}
+.tab{display:none}.tab.active{display:block}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:22px 24px;margin-bottom:14px;border:1px solid rgba(0,0,0,.04)}
+.ct{font-size:.9rem;font-weight:700;color:var(--primary);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
+.full{grid-column:1/-1}
+.f{display:flex;flex-direction:column;gap:4px}
+label{font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+input[type=text],input[type=date],input[type=email],select,textarea{border:1px solid var(--border);border-radius:6px;padding:8px 11px;font-size:.86rem;font-family:inherit;transition:border-color .2s,box-shadow .2s;color:var(--text);background:#fff;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(26,58,92,.1)}
+textarea{resize:vertical;line-height:1.5}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:6px;font-size:.82rem;font-weight:600;cursor:pointer;border:none;transition:all .18s;white-space:nowrap;font-family:inherit}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:#0f2740;transform:translateY(-1px)}
+.btn-ok{background:var(--ok);color:#fff;cursor:default}
+.btn-success{background:var(--ok);color:#fff}.btn-success:hover{background:#0f6a2f;transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--primary);border:1.5px solid var(--primary)}.btn-ghost:hover{background:var(--primary);color:#fff}
+.btn-muted{background:#f1f3f7;color:var(--text)}.btn-muted:hover{background:#e4e7ef}
+.btn-danger{background:#fee2e2;color:var(--danger)}.btn-danger:hover{background:#fecaca}
+.btn-sm{padding:5px 11px;font-size:.76rem}
+.ar{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}
+.ibox{background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:9px 13px;font-size:.8rem;color:#1e40af;margin-bottom:13px;line-height:1.5}
+.ibox-ok{background:#f0fdf4;border:1px solid #86efac;color:#15803d}
+/* Invite drop */
+.dz{border:2px dashed var(--border);border-radius:var(--r);padding:22px;text-align:center;cursor:pointer;transition:all .2s;background:#fafbfd;margin-bottom:12px}
+.dz:hover,.dz.over{border-color:var(--primary);background:rgba(26,58,92,.03)}
+.dz-icon{font-size:1.7rem;margin-bottom:6px}
+.dz p{color:var(--muted);font-size:.8rem;line-height:1.65}
+.dz strong{color:var(--primary)}
+/* Member checkboxes */
+.member-cb-list{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.member-cb{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--border);border-radius:6px;cursor:pointer;background:#fafbfd;transition:background .15s}
+.member-cb:hover{background:#f0f2f7}
+.member-cb input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:var(--primary)}
+.member-cb .mn{font-size:.84rem;font-weight:500}
+.member-cb .mr{font-size:.72rem;color:var(--muted)}
+/* TOP blocks */
+.top-block{border:1px solid var(--border);border-radius:8px;margin-bottom:10px;overflow:hidden}
+.top-hd{background:#f4f6fb;padding:9px 13px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.top-badge{background:var(--primary);color:#fff;font-size:.7rem;font-weight:700;padding:3px 8px;border-radius:4px;white-space:nowrap;flex-shrink:0}
+.top-title{font-size:.85rem;font-weight:600;flex:1}
+.top-hint{font-size:.7rem;color:var(--muted);white-space:nowrap}
+.top-body{padding:11px 13px;display:flex;flex-direction:column;gap:9px}
+.brow{display:flex;gap:7px;align-items:flex-start}
+.brow textarea{flex:1}
+.bi{background:none;border:none;cursor:pointer;color:var(--muted);font-size:.95rem;padding:6px 7px;border-radius:5px;line-height:1;transition:all .15s;font-family:inherit;flex-shrink:0;margin-top:1px}
+.bi:hover{background:#fee2e2;color:var(--danger)}
+/* Flex TOP reorder controls */
+.ft-ctrl{background:none;border:1px solid var(--border);cursor:pointer;color:var(--muted);font-size:.68rem;padding:3px 6px;border-radius:4px;line-height:1;transition:all .15s;font-family:inherit;flex-shrink:0}
+.ft-ctrl:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+.ft-ctrl:disabled{opacity:.3;cursor:default;pointer-events:none}
+.top-block.ft-fixed{border-style:dashed;background:#fafbfd}
+/* Preview */
+.pcard{background:#fff;border-radius:var(--r);box-shadow:var(--shl);overflow:hidden;margin-bottom:14px}
+.ptoolbar{background:#f8f9fc;border-bottom:1px solid var(--border);padding:10px 18px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ptoolbar span{font-size:.76rem;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.05em;margin-right:4px}
+.pcontent{padding:36px 48px;font-family:'Calibri','Calibri Light',Calibri,Arial,sans-serif;line-height:1.55;color:#111;font-size:14.67px}
+/* Sig picker */
+.sig-picker{background:#f8f9fc;border-top:1px solid var(--border);padding:14px 18px;display:flex;gap:20px;flex-wrap:wrap;align-items:center}
+.sig-picker label{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;display:block}
+.sig-slot{display:flex;flex-direction:column;gap:3px;flex:1;min-width:200px}
+/* History */
+.hi{display:flex;align-items:center;gap:12px;padding:12px 15px;background:#fff;border:1px solid var(--border);border-radius:var(--r);margin-bottom:9px;transition:box-shadow .2s}
+.hi:hover{box-shadow:var(--sh)}
+.hi-icon{width:36px;height:36px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;flex-shrink:0;background:#dbeafe}
+.hi-info{flex:1;min-width:0}
+.hi-info strong{display:block;font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hi-info small{color:var(--muted);font-size:.75rem}
+.hi-btns{display:flex;gap:5px;flex-shrink:0}
+.empty{text-align:center;padding:44px 20px;color:var(--muted)}
+.empty .ei{font-size:2.5rem;margin-bottom:10px}
+/* Stammdaten */
+.mbr-row{display:flex;gap:8px;align-items:center;padding:8px;border:1px solid var(--border);border-radius:6px;margin-bottom:7px;background:#fafbfd}
+.mbr-row input{flex:1}
+.sig-thumb{width:60px;height:30px;border:1px dashed #ccc;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:#aaa;cursor:pointer;overflow:hidden;flex-shrink:0}
+.sig-thumb img{max-width:100%;max-height:100%;object-fit:contain}
+/* Toast */
+.toast{position:fixed;bottom:20px;right:20px;background:#1e2532;color:#fff;padding:9px 16px;border-radius:7px;font-size:.81rem;box-shadow:0 4px 20px rgba(0,0,0,.25);transform:translateY(60px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);z-index:9999}
+.toast.show{transform:translateY(0);opacity:1}
+/* Doc styles (preview + print) */
+.doc-nds{text-align:center;padding-bottom:14px;margin-bottom:17px;border-bottom:2.5px solid #1a3a5c}
+.doc-nds .t1{font-size:1.2rem;font-weight:bold}
+.doc-nds .t2{font-size:.92rem;margin-top:4px;line-height:1.5}
+.doc-meta{margin:14px 0;font-size:.89rem;line-height:1.85}
+.doc-meta-r{display:flex}
+.doc-meta-r .lbl{min-width:140px;font-weight:normal}
+.doc-intro{margin:10px 0 14px;font-size:.89rem}
+.doc-top{margin:12px 0}
+.doc-top-h{font-weight:bold;font-size:.89rem;display:flex;gap:14px;margin-bottom:4px}
+.doc-top-label{white-space:nowrap}
+.doc-bullets{padding-left:13px;font-size:.88rem;line-height:1.7}
+.doc-bullet::before{content:'\2014\a0'}
+.doc-besc{font-size:.88rem;line-height:1.7;padding-left:13px}
+.doc-hr{border:none;border-top:1px solid #ccc;margin:14px 0}
+.doc-sigs{display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-top:48px}
+.doc-sig-name{min-height:46px;display:flex;align-items:flex-end}
+.doc-sig-name img{max-height:44px;max-width:160px;object-fit:contain}
+.doc-sig-line{border-top:1px solid #333;padding-top:4px;font-size:.8rem;color:#444}
+.doc-foot{margin-top:20px;padding-top:8px;border-top:1px solid #eee;font-size:.7rem;color:#bbb;text-align:center}
+/* Beschlussmitteilung letter */
+.doc-letter{font-size:.88rem;line-height:1.75}
+.doc-letter .sender{margin-bottom:20px}
+.doc-letter .recv{margin-bottom:20px}
+.doc-letter .subj{font-weight:bold;margin:16px 0 12px}
+/* Status badge */
+.status-ok{display:inline-flex;align-items:center;gap:6px;background:#f0fdf4;border:1px solid #86efac;color:#15803d;border-radius:6px;padding:5px 12px;font-size:.8rem;font-weight:600;margin-left:10px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📋 HWK Protokoll-Generator</h1>
+  <span class="hbadge">Handwerkskammer Potsdam · Personalrat · Lokal &amp; Offline</span>
+</header>
+
+<nav>
+  <button class="active" onclick="showTab('protokoll',this)">📄 Niederschrift</button>
+  <button onclick="showTab('anwesenheit',this)">✅ Anwesenheitsliste</button>
+  <button onclick="showTab('historie',this)">🗂 Historie</button>
+  <button onclick="showTab('stammdaten',this)">⚙️ Stammdaten</button>
+</nav>
+
+<div class="container">
+
+<!-- ═══ TAB NIEDERSCHRIFT ═══════════════════════════════════ -->
+<div id="tab-protokoll" class="tab active">
+
+  <!-- Einladung hochladen -->
+  <div class="card">
+    <div class="ct">📨 Einladung hochladen <small style="font-weight:400;color:var(--muted);font-size:.78rem;margin-left:4px">— befüllt alle Felder automatisch</small></div>
+    <div class="dz" id="inv-dz" onclick="document.getElementById('inv-file').click()">
+      <div class="dz-icon">📂</div>
+      <p><strong>Einladungs-Datei hierher ziehen</strong> oder klicken<br>.txt · .docx — Datum, Uhrzeit, Ort und TOPs werden erkannt</p>
+    </div>
+    <input type="file" id="inv-file" accept=".txt,.md,.docx" style="display:none">
+    <div id="inv-status" style="display:none"></div>
+  </div>
+
+  <!-- Sitzungsinformationen -->
+  <div class="card">
+    <div class="ct">📌 Sitzungsinformationen</div>
+    <div class="g4" style="margin-bottom:10px">
+      <div class="f"><label>Sitzung Nr.</label><input type="text" id="p-nr" placeholder="z.B. 3"></div>
+      <div class="f"><label>Datum der Sitzung</label><input type="date" id="p-datum"></div>
+      <div class="f"><label>Datum der Einladung</label><input type="date" id="p-einladung"></div>
+      <div class="f"><label>Ort / Raum</label><input type="text" id="p-ort" placeholder="z.B. Besprechungsraum 2"></div>
+    </div>
+    <div class="g2">
+      <div class="f">
+        <label>⏱ Beginn der Sitzung</label>
+        <select id="p-beginn" style="font-size:.9rem;padding:9px 11px"></select>
+        <input type="text" id="p-beginn-custom" placeholder="Freie Eingabe: z.B. 09:05 Uhr" style="display:none;margin-top:5px">
+      </div>
+      <div class="f">
+        <label>⏱ Ende der Sitzung</label>
+        <select id="p-ende" style="font-size:.9rem;padding:9px 11px"></select>
+        <input type="text" id="p-ende-custom" placeholder="Freie Eingabe: z.B. 12:05 Uhr" style="display:none;margin-top:5px">
+      </div>
+    </div>
+  </div>
+
+  <!-- Teilnehmende -->
+  <div class="card">
+    <div class="ct">👥 Teilnehmende &amp; Protokollführung</div>
+    <div class="ibox">Alle PR-Mitglieder sind standardmäßig angehakt. Fehlende Mitglieder einfach abwählen.</div>
+    <div class="member-cb-list" id="teiln-list"></div>
+    <div id="teiln-summary" class="ibox" style="display:none;margin-top:8px;margin-bottom:8px"></div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button class="btn btn-muted btn-sm" onclick="selectAllMembers(true)">Alle wählen</button>
+      <button class="btn btn-muted btn-sm" onclick="selectAllMembers(false)">Alle abwählen</button>
+    </div>
+    <div class="g2">
+      <div class="f"><label>Protokollführung</label><select id="p-protokoll"></select></div>
+      <div class="f"><label>Weitere Anwesende (Gäste, optional)</label><input type="text" id="p-gaeste" placeholder="z.B. Dr. Weber (Hauptgeschäftsführer)"></div>
+    </div>
+  </div>
+
+  <!-- TOPs -->
+  <div class="card">
+    <div class="ct">📋 Tagesordnungspunkte</div>
+
+    <!-- TOP 1 -->
+    <div class="top-block">
+      <div class="top-hd"><span class="top-badge">TOP 1</span><span class="top-title">Genehmigung, Änderung oder Ergänzung der Tagesordnung</span><span class="top-hint">Freitext</span></div>
+      <div class="top-body"><textarea id="top1" rows="2">Die TO wird bestätigt.</textarea></div>
+    </div>
+
+    <!-- TOP 2 -->
+    <div class="top-block">
+      <div class="top-hd"><span class="top-badge">TOP 2</span><span class="top-title">Feststellung der Beschlussfähigkeit</span><span class="top-hint">Freitext</span></div>
+      <div class="top-body"><textarea id="top2" rows="2">Die Beschlussfähigkeit wird festgestellt.</textarea></div>
+    </div>
+
+    <!-- TOP 3 -->
+    <div class="top-block">
+      <div class="top-hd"><span class="top-badge">TOP 3</span><span class="top-title">Berichte über die Tätigkeit des Vorstandes sowie zu Gesprächen mit Mitarbeitern, mit Vertretern der Abteilungen und mit der Geschäftsführung</span><span class="top-hint">je Zeile → „—"</span></div>
+      <div class="top-body"><textarea id="top3" rows="4" placeholder="Bericht 1&#10;Bericht 2&#10;..."></textarea></div>
+    </div>
+
+    <!-- Flexible TOPs 4 bis N — verschiebbar, löschbar, erweiterbar -->
+    <div id="flex-tops"></div>
+
+    <!-- Buttons für neue TOPs -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;margin-bottom:6px">
+      <button class="btn btn-ghost btn-sm" onclick="addFlexTopNormal()">+ Tagesordnungspunkt hinzufügen</button>
+      <button class="btn btn-ghost btn-sm" id="add-beschl-btn" onclick="addFlexTopBeschluss()">+ Beschlüsse-TOP hinzufügen</button>
+    </div>
+
+    <!-- Verschiedenes — immer letzter TOP -->
+    <div class="top-block ft-fixed">
+      <div class="top-hd">
+        <span class="top-badge" id="verschiedenes-badge" style="background:var(--muted)">TOP —</span>
+        <span class="top-title">Verschiedenes</span>
+        <span class="top-hint" style="color:var(--primary);font-weight:600">↓ immer letzter Punkt</span>
+      </div>
+      <div class="top-body"><textarea id="top-verschiedenes" rows="3" placeholder="Punkt 1&#10;Punkt 2"></textarea></div>
+    </div>
+  </div>
+
+  <!-- Transkription -->
+  <div class="card">
+    <div class="ct">📂 Transkription / Notizen <small style="font-weight:400;color:var(--muted);font-size:.78rem">(optional)</small></div>
+    <div class="dz" id="txt-dz" onclick="document.getElementById('txt-file').click()">
+      <div class="dz-icon">📁</div>
+      <p><strong>TXT-Datei ziehen</strong> oder klicken — Text wird unten eingefügt</p>
+    </div>
+    <input type="file" id="txt-file" accept=".txt,.md" style="display:none">
+    <textarea id="p-freitext" rows="6" placeholder="Transkription oder Stichpunkte — erscheint als eigener Abschnitt in der Niederschrift"></textarea>
+  </div>
+
+  <!-- Generate Button -->
+  <div style="margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <button class="btn btn-primary" id="gen-btn" onclick="genProtokoll()" style="font-size:.94rem;padding:11px 24px">
+      📄 Niederschrift generieren
+    </button>
+    <button class="btn btn-muted" onclick="clearForm()">↺ Formular leeren</button>
+    <span id="gen-status" style="display:none"></span>
+  </div>
+
+  <!-- Niederschrift Preview -->
+  <div id="proto-card" class="pcard" style="display:none">
+    <div class="ptoolbar">
+      <span>Niederschrift — Vorschau</span>
+      <button class="btn btn-success btn-sm" onclick="flashExport(this,'doPrint','proto-inner','Niederschrift')">🖨 Als PDF drucken</button>
+      <button class="btn btn-ghost btn-sm" onclick="flashExport(this,'doWord','protokoll','Niederschrift')">📝 Als Word (.doc)</button>
+      <button class="btn btn-muted btn-sm" onclick="saveHist('protokoll')">💾 In Historie</button>
+    </div>
+    <div class="pcontent" id="proto-inner"></div>
+    <!-- Signature picker -->
+    <div class="sig-picker">
+      <div style="font-size:.76rem;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.05em;width:100%;margin-bottom:6px">Unterschriften auswählen</div>
+      <div class="sig-slot">
+        <label>Personalratsvorsitzende/r</label>
+        <select id="sig-left" onchange="updateSigs()"></select>
+      </div>
+      <div class="sig-slot">
+        <label>Protokollführung</label>
+        <select id="sig-right" onchange="updateSigs()"></select>
+      </div>
+      <button class="btn btn-muted btn-sm" onclick="updateSigs()">Unterschriften anwenden</button>
+    </div>
+  </div>
+
+  <!-- Beschlussmitteilung -->
+  <div id="bm-section" style="display:none">
+    <div style="margin:16px 0 10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <button class="btn btn-primary" id="bm-btn" onclick="genBeschluss()" style="font-size:.94rem;padding:11px 24px">
+        📨 Beschlussmitteilung generieren
+      </button>
+      <span id="bm-status" style="display:none"></span>
+    </div>
+    <div id="bm-card" class="pcard" style="display:none">
+      <div class="ptoolbar">
+        <span>Beschlussmitteilung — Vorschau</span>
+        <button class="btn btn-success btn-sm" onclick="flashExport(this,'doPrint','bm-inner','Beschlussmitteilung')">🖨 Als PDF drucken</button>
+        <button class="btn btn-ghost btn-sm" onclick="flashExport(this,'doWord','beschluss','Beschlussmitteilung')">📝 Als Word (.doc)</button>
+        <button class="btn btn-muted btn-sm" onclick="saveHist('beschluss')">💾 In Historie</button>
+      </div>
+      <div class="pcontent" id="bm-inner"></div>
+    </div>
+  </div>
+
+  <!-- Stellungnahme PR -->
+  <div id="stell-section" style="display:none">
+    <div style="margin:16px 0 10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <button class="btn btn-primary" id="stell-btn" onclick="genStellungnahme()" style="font-size:.94rem;padding:11px 24px">
+        📝 Stellungnahme des Personalrats generieren
+      </button>
+      <span id="stell-status" style="display:none"></span>
+    </div>
+    <div id="stell-card" class="pcard" style="display:none">
+      <div class="ptoolbar">
+        <span>Stellungnahme — Vorschau</span>
+        <button class="btn btn-success btn-sm" onclick="flashExport(this,'doPrint','stell-inner','Stellungnahme')">🖨 Als PDF drucken</button>
+        <button class="btn btn-ghost btn-sm" onclick="flashExport(this,'doWord','stellungnahme','Stellungnahme')">📝 Als Word (.doc)</button>
+        <button class="btn btn-muted btn-sm" onclick="saveHist('stellungnahme')">💾 In Historie</button>
+      </div>
+      <div class="pcontent" id="stell-inner"></div>
+    </div>
+  </div>
+
+</div><!-- /tab-protokoll -->
+
+
+<!-- ═══ TAB ANWESENHEITSLISTE ═══════════════════════════════ -->
+<div id="tab-anwesenheit" class="tab">
+  <div class="card">
+    <div class="ct">📌 Sitzungsinformationen</div>
+    <div class="g3">
+      <div class="f"><label>Datum</label><input type="date" id="a-datum"></div>
+      <div class="f"><label>Sitzung Nr.</label><input type="text" id="a-nr" placeholder="z.B. 3"></div>
+      <div class="f"><label>Ort / Raum</label><input type="text" id="a-ort" placeholder="z.B. Besprechungsraum 2"></div>
+      <div class="f full"><label>Art der Sitzung</label><input type="text" id="a-art" value="Ordentliche Sitzung des Personalrats der Handwerkskammer Potsdam"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct">👥 Mitglieder des Personalrats</div>
+    <div class="ibox">Status pro Mitglied auswählen. Fehlende Mitglieder über den Button ergänzen.</div>
+    <div id="aw-members-list"></div>
+    <button class="btn btn-ghost btn-sm" style="margin-top:4px" onclick="addAWMember()">+ Mitglied hinzufügen</button>
+  </div>
+  <div class="card">
+    <div class="ct">🧑‍🤝‍🧑 Weitere Anwesende (optional)</div>
+    <textarea id="a-gaeste" rows="3" placeholder="Name, Funktion — eine Person pro Zeile"></textarea>
+    <div class="ar">
+      <button class="btn btn-primary" id="aw-gen-btn" onclick="genAnwesenheit()">✅ Anwesenheitsliste generieren</button>
+      <button class="btn btn-muted" onclick="clearAForm()">↺ Formular leeren</button>
+      <span id="aw-status" style="display:none"></span>
+    </div>
+  </div>
+  <div id="aw-card" class="pcard" style="display:none">
+    <div class="ptoolbar">
+      <span>Anwesenheitsliste — Vorschau</span>
+      <button class="btn btn-success btn-sm" onclick="flashExport(this,'doPrint','aw-inner','Anwesenheitsliste')">🖨 Als PDF drucken</button>
+      <button class="btn btn-ghost btn-sm" onclick="flashExport(this,'doWord','anwesenheit','Anwesenheitsliste')">📝 Als Word (.doc)</button>
+      <button class="btn btn-muted btn-sm" onclick="saveHist('anwesenheit')">💾 In Historie</button>
+    </div>
+    <div class="pcontent" id="aw-inner"></div>
+    <div class="sig-picker">
+      <div style="font-size:.76rem;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.05em;width:100%;margin-bottom:6px">Unterschriften auswählen</div>
+      <div class="sig-slot">
+        <label>Personalratsvorsitzende/r</label>
+        <select id="aw-sig-left" onchange="updateAWSigs()"></select>
+      </div>
+      <div class="sig-slot">
+        <label>Protokollführung</label>
+        <select id="aw-sig-right" onchange="updateAWSigs()"></select>
+      </div>
+      <button class="btn btn-muted btn-sm" onclick="updateAWSigs()">Unterschriften anwenden</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ TAB HISTORIE ════════════════════════════════════════ -->
+<div id="tab-historie" class="tab">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)">
+      <div class="ct" style="margin:0;padding:0;border:none">🗂 Gespeicherte Protokolle</div>
+      <button class="btn btn-danger btn-sm" id="clear-all" onclick="clearAll()" style="display:none">🗑 Alle löschen</button>
+    </div>
+    <div id="hist-cont"></div>
+  </div>
+</div>
+
+
+<!-- ═══ TAB STAMMDATEN ══════════════════════════════════════ -->
+<div id="tab-stammdaten" class="tab">
+  <div class="card">
+    <div class="ct">👥 PR-Mitglieder</div>
+    <div class="ibox">Namen und Rollen der Personalratsmitglieder. Unterschriften als Bild hochladen (wird lokal gespeichert).</div>
+    <div id="mbr-edit-list"></div>
+    <div class="ar">
+      <button class="btn btn-ghost" onclick="addMemberRow()">+ Mitglied hinzufügen</button>
+      <button class="btn btn-success" onclick="saveMembers()">💾 Mitglieder speichern</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ct">📝 Beschluss-Vorlage</div>
+    <div class="ibox">Diese Vorlage wird per „📋 Vorlage"-Button in jeden Beschluss eingefügt. <code>[THEMA]</code> als Platzhalter.</div>
+    <div class="f">
+      <label>Vorlage-Text</label>
+      <textarea id="besc-vorlage" rows="3"></textarea>
+    </div>
+    <div class="ar"><button class="btn btn-success" onclick="saveVorlage()">💾 Vorlage speichern</button></div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<div class="toast" id="toast"></div>
+
+<!-- HIDDEN file inputs for AW members -->
+<input type="file" id="aw-mbr-file" accept=".txt" style="display:none">
+
+<script>
+// ════════════════════════════════════════════════
+// CONSTANTS & STATE
+// ════════════════════════════════════════════════
+let ftNextId = 0, beschN = 0, awMbrN = 0;
+let currentHTML = { protokoll:'', anwesenheit:'', beschluss:'', stellungnahme:'' };
+
+const DEFAULT_MEMBERS = [
+  {id:1,name:'Maria Vogt',role:'Vorsitzende',sig:''},
+  {id:2,name:'Thomas Richter',role:'Stellv. Vorsitzender',sig:''},
+  {id:3,name:'Sabine Koch',role:'Schriftführerin',sig:''},
+  {id:4,name:'Klaus Weber',role:'Mitglied',sig:''},
+  {id:5,name:'Anna Braun',role:'Mitglied',sig:''},
+  {id:6,name:'Peter Schmidt',role:'Mitglied',sig:''},
+  {id:7,name:'Monika Fischer',role:'Mitglied',sig:''},
+];
+
+const DEFAULT_VORLAGE = 'Der Personalrat der Handwerkskammer Potsdam beschließt: [THEMA EINTRAGEN]. Abstimmungsergebnis: Ja: [ ], Nein: [ ], Enthaltungen: [ ].';
+
+// ════════════════════════════════════════════════
+// STORAGE HELPERS
+// ════════════════════════════════════════════════
+const getMembers = () => { try { const m=JSON.parse(localStorage.getItem('hwk_members_v2')); return (Array.isArray(m)&&m.length>0)?m:DEFAULT_MEMBERS; } catch { return DEFAULT_MEMBERS; }};
+const setMembersLS = m => localStorage.setItem('hwk_members_v2', JSON.stringify(m));
+const getVorlage = () => localStorage.getItem('hwk_vorlage') || DEFAULT_VORLAGE;
+const getHistLS = () => { try { return JSON.parse(localStorage.getItem('hwk_hist_v2') || '[]'); } catch { return []; }};
+const setHistLS = h => localStorage.setItem('hwk_hist_v2', JSON.stringify(h));
+
+// ════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════
+function esc(s){ return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmtDate(v){ if(!v)return'—'; const[y,m,d]=v.split('-'); return d+'.'+m+'.'+y; }
+function toast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2800); }
+function removeEl(id){ const el=document.getElementById(id); if(el)el.remove(); }
+function bulletLines(text){
+  if(!text||!text.trim()) return '<div class="doc-bullet" style="color:#aaa">—</div>';
+  return text.split('\n').map(s=>s.trim()).filter(Boolean).map(s=>`<div class="doc-bullet">${esc(s)}</div>`).join('');
+}
+
+function bulletLinesSimple(text){
+  if(!text||!text.trim()) return '<p class="bullet-line" style="color:#aaa">&ndash;</p>';
+  return text.split('\n').map(s=>s.trim()).filter(Boolean).map(s=>`<p class="bullet-line">&ndash;&nbsp;&nbsp;${esc(s)}</p>`).join('');
+}
+
+// ════════════════════════════════════════════════
+// TIME SELECTS
+// ════════════════════════════════════════════════
+function buildTimeSelect(id, val=''){
+  const sel = document.getElementById(id);
+  let html = '<option value="">— Auswählen —</option>';
+  for(let h=8;h<=18;h++){
+    const ms = h===18?[0]:[0,15,30,45];
+    for(const m of ms){
+      const v = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+      html += `<option value="${v}"${v===val?' selected':''}>${v} Uhr</option>`;
+    }
+  }
+  html += '<option value="__other__">Andere Uhrzeit…</option>';
+  sel.innerHTML = html;
+  sel.onchange = () => {
+    const custom = document.getElementById(id+'-custom');
+    if(sel.value==='__other__'){ custom.style.display=''; custom.focus(); }
+    else custom.style.display='none';
+  };
+}
+
+function getTimeVal(id){
+  const sel=document.getElementById(id), c=document.getElementById(id+'-custom');
+  if(sel.value==='__other__'&&c.value.trim()) return c.value.trim();
+  return sel.value||'—';
+}
+
+function setTimeVal(id, val){
+  const sel=document.getElementById(id), c=document.getElementById(id+'-custom');
+  if(!val)return;
+  // Round to nearest 15 min
+  const [hh,mm]=val.split(':').map(Number);
+  const rounded = Math.round(mm/15)*15;
+  const rh = rounded===60?hh+1:hh, rm = rounded===60?0:rounded;
+  const rv = `${String(rh).padStart(2,'0')}:${String(rm).padStart(2,'0')}`;
+  // Check if value exists in select
+  const found = [...sel.options].some(o=>o.value===rv);
+  if(found){ sel.value=rv; c.style.display='none'; }
+  else { sel.value='__other__'; c.style.display=''; c.value=val; }
+}
+
+// ════════════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════════════
+function showTab(name,btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='historie') renderHist();
+  if(name==='stammdaten') renderStammdaten();
+}
+
+// ════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════
+function init(){
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('p-datum').value = today;
+  document.getElementById('p-einladung').value = today;
+  document.getElementById('a-datum').value = today;
+  buildTimeSelect('p-beginn','10:00');
+  buildTimeSelect('p-ende','12:00');
+  initFlexTops();
+  renderMemberCheckboxes();
+  renderProtokollDropdown();
+  renderSigPickers();
+  renderAWSigPickers();
+  renderAWMembers();
+  renderStammdaten();
+  document.getElementById('besc-vorlage').value = getVorlage();
+  setupDrops();
+  updateTeilnSummary();
+}
+
+// ════════════════════════════════════════════════
+// MEMBER CHECKBOXES (Teilnehmende)
+// ════════════════════════════════════════════════
+function renderMemberCheckboxes(){
+  const members = getMembers();
+  const list = document.getElementById('teiln-list');
+  list.innerHTML = members.map(m=>`
+    <label class="member-cb">
+      <input type="checkbox" id="mc-${m.id}" checked onchange="updateTeilnSummary()">
+      <div><div class="mn">${esc(m.name)}</div><div class="mr">${esc(m.role)}</div></div>
+    </label>`).join('');
+}
+
+function selectAllMembers(checked){
+  getMembers().forEach(m=>{ const el=document.getElementById('mc-'+m.id); if(el) el.checked=checked; });
+  updateTeilnSummary();
+}
+
+function updateTeilnSummary(){
+  const sel=getSelectedMembers(), total=getMembers().length;
+  const el=document.getElementById('teiln-summary');
+  if(!el) return;
+  if(!sel.length){ el.style.display=''; el.innerHTML='⚠️ <strong>Keine Mitglieder ausgewählt</strong>'; return; }
+  el.style.display='';
+  el.innerHTML=`<strong>${sel.length} von ${total} Mitgliedern ausgewählt:</strong> ${sel.map(m=>`${esc(m.name)}&nbsp;<em style="color:var(--muted)">(${esc(m.role)})</em>`).join(' &nbsp;·&nbsp; ')}`;
+}
+
+function getSelectedMembers(){
+  return getMembers().filter(m=>{ const el=document.getElementById('mc-'+m.id); return el&&el.checked; });
+}
+
+function renderProtokollDropdown(){
+  const sel = document.getElementById('p-protokoll');
+  const members = getMembers();
+  sel.innerHTML = '<option value="">— auswählen —</option>' +
+    members.map(m=>`<option value="${m.id}">${esc(m.name)} (${esc(m.role)})</option>`).join('');
+  if(members[2]) sel.value = members[2].id; // default: Schriftführer
+}
+
+function renderSigPickers(){
+  const members = getMembers();
+  const opts = '<option value="">— keine —</option>' + members.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join('');
+  ['sig-left','sig-right'].forEach(id=>{ const el=document.getElementById(id); if(el) el.innerHTML=opts; });
+  const sl=document.getElementById('sig-left'), sr=document.getElementById('sig-right');
+  if(sl&&members[0]) sl.value=members[0].id;
+  if(sr&&members[2]) sr.value=members[2].id;
+  renderAWSigPickers();
+}
+
+function renderAWSigPickers(){
+  const members=getMembers();
+  const opts='<option value="">— keine —</option>'+members.map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join('');
+  ['aw-sig-left','aw-sig-right'].forEach(id=>{ const el=document.getElementById(id); if(el) el.innerHTML=opts; });
+  const sl=document.getElementById('aw-sig-left'), sr=document.getElementById('aw-sig-right');
+  if(sl&&members[0]) sl.value=members[0].id;
+  if(sr&&members[2]) sr.value=members[2].id;
+}
+
+function updateAWSigs(){
+  const leftId=document.getElementById('aw-sig-left')?.value;
+  const rightId=document.getElementById('aw-sig-right')?.value;
+  const ls=document.getElementById('aw-doc-sig-left-img');
+  const rs=document.getElementById('aw-doc-sig-right-img');
+  const ln=document.getElementById('aw-doc-sig-left-name');
+  const rn=document.getElementById('aw-doc-sig-right-name');
+  if(ls) ls.innerHTML=getSigImg(leftId);
+  if(rs) rs.innerHTML=getSigImg(rightId);
+  if(ln) ln.textContent=getSigName(leftId)||'Personalratsvorsitzende/r';
+  if(rn) rn.textContent=getSigName(rightId)||'Protokollführung';
+  toast('Unterschriften aktualisiert');
+}
+
+// ════════════════════════════════════════════════
+// BESCHLUSS ITEMS
+// ════════════════════════════════════════════════
+function addBeschluss(text='', betreff=''){
+  beschN++;
+  const n=beschN, list=document.getElementById('beschluss-list');
+  const div=document.createElement('div');
+  div.className='brow'; div.id='br-'+n;
+  div.style.cssText='flex-direction:column;gap:8px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;margin-bottom:9px;background:#fafbfd';
+  div.innerHTML=`
+    <div style="display:flex;gap:7px;align-items:flex-start">
+      <div style="flex:1;display:flex;flex-direction:column;gap:5px">
+        <input type="text" id="br-s-${n}" value="${esc(betreff)}" placeholder="Betreff / Bezeichnung des Beschlussgegenstands (z.B. Einstellung Herrn Mustermann ab 01.05.2026)" style="font-size:.83rem">
+        <textarea id="br-t-${n}" rows="3" placeholder="Beschlusstext — oder &#x201E;📋 Vorlage&#x201C; nutzen">${esc(text)}</textarea>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#eef2f8;border-radius:5px;padding:6px 10px;margin-top:2px">
+          <span style="font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;flex-shrink:0">Abstimmung:</span>
+          <label style="display:flex;align-items:center;gap:5px;font-size:.82rem;cursor:pointer;font-weight:600;flex-shrink:0">
+            <input type="checkbox" id="br-ei-${n}" onchange="toggleEinstimmig(${n})"> Einstimmig
+          </label>
+          <div id="br-votes-${n}" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <span style="font-size:.78rem;color:var(--muted)">Ja-Stimmen:</span>
+            <input type="number" id="br-ja-${n}" min="0" value="" style="width:50px;padding:4px 7px;font-size:.82rem">
+            <span style="font-size:.78rem;color:var(--muted)">Nein-Stimmen:</span>
+            <input type="number" id="br-nein-${n}" min="0" value="" style="width:50px;padding:4px 7px;font-size:.82rem">
+            <span style="font-size:.78rem;color:var(--muted)">Enthaltungen:</span>
+            <input type="number" id="br-enth-${n}" min="0" value="" style="width:50px;padding:4px 7px;font-size:.82rem">
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+        <button class="btn btn-ghost btn-sm" onclick="insertVorlage('br-t-${n}')" title="Beschlussvorlage einfügen">📋 Vorlage</button>
+        <button class="btn btn-muted btn-sm" onclick="toggleAnhoerung(${n})" title="Anhörungsunterlage hochladen">📎 Anhörung</button>
+        <button class="bi" onclick="removeEl('br-${n}')">✕</button>
+      </div>
+    </div>
+    <div id="br-ah-${n}" style="display:none;border-top:1px solid var(--border);padding-top:8px;margin-top:2px">
+      <div style="font-size:.72rem;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">📎 Anhörungsunterlage der Geschäftsführung</div>
+      <div class="dz" id="br-ah-dz-${n}" onclick="document.getElementById('br-ah-f-${n}').click()" style="padding:12px;margin-bottom:6px">
+        <div class="dz-icon" style="font-size:1.2rem;margin-bottom:4px">📂</div>
+        <p style="font-size:.76rem"><strong>Anhörungsunterlage hierher ziehen</strong> oder klicken<br>.docx · .txt — Inhalt wird als Referenz angezeigt</p>
+      </div>
+      <input type="file" id="br-ah-f-${n}" accept=".docx,.txt,.md" style="display:none">
+      <div id="br-ah-name-${n}" style="display:none;font-size:.76rem;color:var(--ok);font-weight:600;margin-bottom:4px"></div>
+      <div id="br-ah-text-${n}" style="display:none;background:#fff;border:1px solid var(--border);border-radius:5px;padding:9px 11px;font-size:.78rem;max-height:150px;overflow-y:auto;color:#444;white-space:pre-wrap;line-height:1.55"></div>
+    </div>`;
+  list.appendChild(div);
+  setupDZ('br-ah-dz-'+n, 'br-ah-f-'+n, file=>readAnhoerung(file, n));
+}
+
+function toggleEinstimmig(n){
+  const ei=document.getElementById('br-ei-'+n);
+  const vt=document.getElementById('br-votes-'+n);
+  if(vt){ vt.style.opacity=ei.checked?'0.35':'1'; vt.style.pointerEvents=ei.checked?'none':'auto'; }
+}
+
+function toggleAnhoerung(n){
+  const el=document.getElementById('br-ah-'+n);
+  if(el) el.style.display=el.style.display==='none'?'':'none';
+}
+
+async function readAnhoerung(file, n){
+  let text='';
+  try {
+    if(file.name.toLowerCase().endsWith('.docx')) text=await extractDocxText(file);
+    else text=await file.text();
+  } catch(e){ toast('Fehler beim Lesen: '+e.message); return; }
+  if(!text.trim()){ toast('Kein Text erkannt'); return; }
+  const el=document.getElementById('br-ah-text-'+n);
+  const nm=document.getElementById('br-ah-name-'+n);
+  if(el){ el.textContent=text.trim(); el.style.display=''; }
+  if(nm){ nm.textContent='✓ '+file.name; nm.style.display=''; }
+  toast('Anhörungsunterlage eingelesen ✓');
+}
+
+function insertVorlage(id){
+  const el=document.getElementById(id);
+  if(el&&!el.value.trim()) el.value=getVorlage();
+  else if(el) el.value=el.value+'\n'+getVorlage();
+}
+
+function getBeschluesse(){
+  const items=[];
+  document.querySelectorAll('.brow').forEach(el=>{
+    if(!el.id.match(/^br-\d+$/)) return;
+    const n=el.id.replace('br-','');
+    const t=document.getElementById('br-t-'+n)?.value.trim()||'';
+    if(!t) return;
+    const s=document.getElementById('br-s-'+n)?.value.trim()||'';
+    const ei=document.getElementById('br-ei-'+n)?.checked||false;
+    const ja=document.getElementById('br-ja-'+n)?.value.trim()||'';
+    const nein=document.getElementById('br-nein-'+n)?.value.trim()||'';
+    const enth=document.getElementById('br-enth-'+n)?.value.trim()||'';
+    let vote='';
+    if(ei) vote='einstimmig';
+    else if(ja!==''||nein!==''||enth!=='') vote='Ja: '+(ja||'0')+' / Nein: '+(nein||'0')+' / Enthaltungen: '+(enth||'0');
+    items.push({text:t, betreff:s, vote});
+  });
+  return items;
+}
+
+// ════════════════════════════════════════════════
+// FLEXIBLE TOPS (TOP 4 bis N)
+// ════════════════════════════════════════════════
+
+function initFlexTops(){
+  document.getElementById('flex-tops').innerHTML='';
+  ftNextId=0; beschN=0;
+  addFlexTopNormal('Berichte der Personalratsmitglieder zur Teilnahme an Vorstellungsgesprächen','');
+  addFlexTopBeschluss('Beschlussfassung zu mitbestimmungs- oder mitwirkungspflichtigen Angelegenheiten');
+}
+
+function addFlexTop(type, title='', content=''){
+  ftNextId++;
+  const id=ftNextId;
+  const container=document.getElementById('flex-tops');
+  const div=document.createElement('div');
+  div.className='top-block';
+  div.dataset.ftid=String(id);
+  div.dataset.fttype=type;
+
+  const titleVal=title||'';
+  const bodyHtml = type==='beschluesse'
+    ? `<div class="ibox">Pro Beschluss eine Zeile. „📋 Vorlage“ fügt eine Standard-Formulierung ein.</div>
+       <div id="beschluss-list"></div>
+       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;align-items:center">
+         <button class="btn btn-ghost btn-sm" onclick="addBeschluss()">+ Beschluss hinzufügen</button>
+         <button class="btn btn-primary btn-sm" onclick="genBeschluss()" style="margin-left:auto">📨 Beschlussmitteilung an GF generieren</button>
+       </div>`
+    : `<textarea id="ftc-${id}" rows="3" placeholder="Inhalt / Punkte (je Zeile ein Aufzählungspunkt)">${esc(content)}</textarea>`;
+
+  div.innerHTML=`
+    <div class="top-hd" style="gap:6px">
+      <span class="top-badge">TOP ?</span>
+      <input type="text" id="ftt-${id}" placeholder="Titel des Tagesordnungspunkts" value="${esc(titleVal)}"
+             style="flex:1;border:none;background:transparent;font-weight:600;font-size:.85rem;outline:none;min-width:0">
+      <div style="display:flex;gap:3px;flex-shrink:0">
+        <button class="ft-ctrl" title="Nach oben verschieben" onclick="moveFlexTop(${id},'up')">&#9650;</button>
+        <button class="ft-ctrl" title="Nach unten verschieben" onclick="moveFlexTop(${id},'down')">&#9660;</button>
+        <button class="bi" title="Tagesordnungspunkt löschen" onclick="removeFlexTop(${id})">&#x2715;</button>
+      </div>
+    </div>
+    <div class="top-body">${bodyHtml}</div>`;
+  container.appendChild(div);
+  renumberFlexTops();
+  updateAddBeschlussBtn();
+}
+
+function addFlexTopNormal(title='', content=''){
+  addFlexTop('normal', title, content);
+}
+
+function addFlexTopBeschluss(title=''){
+  if(document.querySelector('#flex-tops > [data-fttype="beschluesse"]')){
+    toast('Es gibt bereits einen Beschlüsse-TOP — bitte erst den bestehenden löschen.');
+    return;
+  }
+  addFlexTop('beschluesse', title||'Beschlussfassung zu mitbestimmungs- oder mitwirkungspflichtigen Angelegenheiten');
+  beschN=0;
+  addBeschluss(); addBeschluss();
+}
+
+function removeFlexTop(id){
+  const el=document.querySelector('#flex-tops > [data-ftid="'+id+'"]');
+  if(!el) return;
+  if(el.dataset.fttype==='beschluesse') beschN=0;
+  el.remove();
+  renumberFlexTops();
+  updateAddBeschlussBtn();
+}
+
+function moveFlexTop(id, dir){
+  const container=document.getElementById('flex-tops');
+  const blocks=[...container.querySelectorAll(':scope > [data-ftid]')];
+  const idx=blocks.findIndex(b=>b.dataset.ftid===String(id));
+  if(dir==='up'&&idx>0) container.insertBefore(blocks[idx], blocks[idx-1]);
+  else if(dir==='down'&&idx<blocks.length-1) container.insertBefore(blocks[idx+1], blocks[idx]);
+  renumberFlexTops();
+}
+
+function renumberFlexTops(){
+  const blocks=document.querySelectorAll('#flex-tops > [data-ftid]');
+  blocks.forEach((b,i)=>{
+    const badge=b.querySelector('.top-badge');
+    if(badge) badge.textContent='TOP '+(i+4);
+  });
+  const vBadge=document.getElementById('verschiedenes-badge');
+  if(vBadge) vBadge.textContent='TOP '+(blocks.length+4);
+}
+
+function updateAddBeschlussBtn(){
+  const btn=document.getElementById('add-beschl-btn');
+  if(!btn) return;
+  const has=!!document.querySelector('#flex-tops > [data-fttype="beschluesse"]');
+  btn.disabled=has;
+  btn.title=has?'Bereits vorhanden — erst den bestehenden Beschlüsse-TOP löschen':'';
+}
+
+function getFlexTopsData(){
+  const blocks=document.querySelectorAll('#flex-tops > [data-ftid]');
+  return [...blocks].map((b,i)=>{
+    const id=b.dataset.ftid;
+    const type=b.dataset.fttype;
+    const titleEl=document.getElementById('ftt-'+id);
+    const title=titleEl?titleEl.value.trim():'';
+    if(type==='beschluesse'){
+      return {num:i+4, type, title, beschl:getBeschluesse()};
+    } else {
+      const contentEl=document.getElementById('ftc-'+id);
+      return {num:i+4, type, title, content:contentEl?contentEl.value.trim():''};
+    }
+  });
+}
+
+// ════════════════════════════════════════════════
+// DROP ZONES
+// ════════════════════════════════════════════════
+function setupDrops(){
+  // Invitation drop
+  setupDZ('inv-dz','inv-file', file=>readInvitation(file));
+  // Transcription drop
+  setupDZ('txt-dz','txt-file', file=>{
+    const r=new FileReader();
+    r.onload=e=>{document.getElementById('p-freitext').value=e.target.result; toast('Datei eingelesen: '+file.name);};
+    r.readAsText(file,'UTF-8');
+  });
+}
+
+function setupDZ(zoneId, inputId, handler){
+  const zone=document.getElementById(zoneId);
+  const inp=document.getElementById(inputId);
+  if(!zone||!inp) return;
+  zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('over');});
+  zone.addEventListener('dragleave',()=>zone.classList.remove('over'));
+  zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('over');if(e.dataTransfer.files[0])handler(e.dataTransfer.files[0]);});
+  inp.addEventListener('change',e=>{if(e.target.files[0])handler(e.target.files[0]);});
+}
+
+// ════════════════════════════════════════════════
+// DOCX TEXT EXTRACTOR (shared helper)
+// ════════════════════════════════════════════════
+async function extractDocxText(file){
+  const ab=await file.arrayBuffer();
+  const bytes=new Uint8Array(ab);
+  const dec=new TextDecoder('utf-8',{fatal:false});
+  let raw='';
+  for(let i=0;i<bytes.length-4;i++){
+    if(bytes[i]===0x50&&bytes[i+1]===0x4B&&bytes[i+2]===0x03&&bytes[i+3]===0x04){
+      if(i+30>bytes.length) continue;
+      const fnLen=(bytes[i+26])|(bytes[i+27]<<8);
+      const exLen=(bytes[i+28])|(bytes[i+29]<<8);
+      const fnStart=i+30, fnEnd=fnStart+fnLen;
+      if(fnEnd>bytes.length) continue;
+      const fn=dec.decode(bytes.slice(fnStart,fnEnd));
+      if(fn==='word/document.xml'){
+        const dataStart=fnEnd+exLen;
+        const cSize=(bytes[i+18])|(bytes[i+19]<<8)|(bytes[i+20]<<16)|(bytes[i+21]<<24);
+        const cMethod=(bytes[i+8])|(bytes[i+9]<<8);
+        let xmlBytes;
+        if(cMethod===0){
+          xmlBytes=bytes.slice(dataStart,dataStart+cSize);
+        } else {
+          try {
+            const ds=new DecompressionStream('deflate-raw');
+            const writer=ds.writable.getWriter();
+            const reader=ds.readable.getReader();
+            writer.write(bytes.slice(dataStart,dataStart+cSize));
+            writer.close();
+            const chunks=[];
+            let done=false;
+            while(!done){const r=await reader.read();if(r.done){done=true;}else{chunks.push(r.value);}}
+            const total=chunks.reduce((s,c)=>s+c.length,0);
+            xmlBytes=new Uint8Array(total);
+            let off=0; chunks.forEach(c=>{xmlBytes.set(c,off);off+=c.length;});
+          } catch(e){ xmlBytes=bytes.slice(dataStart,Math.min(dataStart+cSize*3,bytes.length)); }
+        }
+        raw=dec.decode(xmlBytes);
+        break;
+      }
+    }
+  }
+  if(!raw) raw=dec.decode(bytes);
+  const wt=[...raw.matchAll(/<w:t[^>]*>([^<]*)<\/w:t>/g)].map(m=>m[1]).filter(s=>s.trim());
+  return wt.length ? wt.join(' ') : raw.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+}
+
+// ════════════════════════════════════════════════
+// INVITATION PARSER
+// ════════════════════════════════════════════════
+async function readInvitation(file){
+  let text='';
+  if(file.name.toLowerCase().endsWith('.docx')){
+    try { text=await extractDocxText(file); }
+    catch(e){ toast('docx-Lesefehler: '+e.message+' — bitte als .txt hochladen'); return; }
+  } else {
+    text=await file.text();
+  }
+  if(!text.trim()){
+    toast('Kein Text erkannt — bitte Einladung als .txt-Datei hochladen');
+    return;
+  }
+  applyInvitationData(parseInvitation(text));
+  toast('Einladung eingelesen ✓');
+}
+
+function parseInvitation(text){
+  const r={nr:'',datum:'',beginn:'',ort:'',tops:{}};
+  // Nr: "20. Sitzung" oder "zur X. Sitzung"
+  const nrM=text.match(/(?:zur\s+)?(\d+)\.\s*Sitzung/i)||text.match(/Sitzung\s+Nr\.?\s*(\d+)/i);
+  if(nrM) r.nr=nrM[1];
+  // Date: TT.MM.JJJJ — pick the first real date (not a time reference)
+  const dM=text.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+  if(dM) r.datum=`${dM[3]}-${dM[2].padStart(2,'0')}-${dM[1].padStart(2,'0')}`;
+  // Time: "um HH:MM Uhr" or "Beginn: HH:MM"
+  const tM=text.match(/um\s+(\d{1,2})[:\.](\d{2})\s*Uhr/i)
+         ||text.match(/Beginn[:\s]+(\d{1,2})[:\.](\d{2})/i)
+         ||text.match(/(\d{1,2})[:\.](\d{2})\s*Uhr/i);
+  if(tM) r.beginn=`${tM[tM.length-2].padStart(2,'0')}:${tM[tM.length-1]}`;
+  // Ort: "im Raum XYZ" — stop before "statt", comma, period or end of line
+  const oM=text.match(/im\s+(Raum\s+[^\n,\.]+?)(?=\s+statt\b|\s*[,\.]\s|\s*\n|$)/i)
+         ||text.match(/(?:Raum\s*:|Ort\s*:)\s*([^\n,\.]+?)(?=\s+statt\b|\s*\n|$)/i);
+  if(oM) r.ort=oM[1].trim();
+  // TOPs
+  const lines=text.split('\n');
+  let curTop=null, curLines=[];
+  for(const line of lines){
+    const tm=line.match(/^\s*TOP\s+(\d+)[:\s\t]+(.+)/i);
+    if(tm){
+      if(curTop!==null) r.tops[curTop].content=curLines.join('\n');
+      curTop=parseInt(tm[1]);
+      r.tops[curTop]={title:tm[2].trim(),content:''};
+      curLines=[];
+    } else if(curTop!==null&&line.trim()&&!line.match(/^\s*---/)){
+      curLines.push(line.trim());
+    }
+  }
+  if(curTop!==null) r.tops[curTop].content=curLines.join('\n');
+  return r;
+}
+
+function applyInvitationData(p){
+  if(p.nr) document.getElementById('p-nr').value=p.nr;
+  if(p.datum) document.getElementById('p-datum').value=p.datum;
+  if(p.beginn) setTimeVal('p-beginn',p.beginn);
+  if(p.ort) document.getElementById('p-ort').value=p.ort;
+  // Feste TOPs 1–3 befüllen
+  if(p.tops[1]?.content) document.getElementById('top1').value=p.tops[1].content;
+  if(p.tops[2]?.content) document.getElementById('top2').value=p.tops[2].content;
+  if(p.tops[3]?.content) document.getElementById('top3').value=p.tops[3].content;
+  // Flexible TOPs zurücksetzen
+  document.getElementById('flex-tops').innerHTML=''; ftNextId=0; beschN=0;
+  // Alle TOPs ab 4 aus der Einladung einlesen
+  const invKeys=Object.keys(p.tops).map(Number).filter(n=>n>=4).sort();
+  // Letzten TOP prüfen: ist es "Verschiedenes"?
+  let vKey=null;
+  if(invKeys.length){
+    const lastK=invKeys[invKeys.length-1];
+    const lTitle=(p.tops[lastK]?.title||'').toLowerCase();
+    if(lTitle.includes('verschiedenes')||lTitle.includes('sonstige')){
+      vKey=lastK;
+      if(p.tops[lastK]?.content) document.getElementById('top-verschiedenes').value=p.tops[lastK].content;
+    }
+  }
+  const flexInvKeys=vKey?invKeys.slice(0,-1):invKeys;
+  let beschlAdded=false;
+  flexInvKeys.forEach(n=>{
+    const top=p.tops[n]; if(!top) return;
+    const tl=(top.title||'').toLowerCase();
+    if(!beschlAdded&&(tl.includes('beschluss')||tl.includes('mitbestimmung')||tl.includes('mitwirkung'))){
+      addFlexTop('beschluesse', top.title||'');
+      const items=(top.content||'').split('\n').map(s=>s.replace(/^[-–•]\s*/,'')).filter(Boolean);
+      document.getElementById('beschluss-list').innerHTML=''; beschN=0;
+      items.forEach(t=>addBeschluss(t));
+      if(!items.length){addBeschluss();addBeschluss();}
+      beschlAdded=true;
+    } else {
+      addFlexTopNormal(top.title||'', top.content||'');
+    }
+  });
+  if(!beschlAdded) addFlexTopBeschluss();
+  updateAddBeschlussBtn();
+  const st=document.getElementById('inv-status');
+  st.style.display='';
+  st.innerHTML=`<div class="ibox ibox-ok">✓ Einladung eingelesen — Felder können noch manuell angepasst werden</div>`;
+  toast('Einladung eingelesen ✓');
+}
+
+// ════════════════════════════════════════════════
+// SIGNATURE HELPERS
+// ════════════════════════════════════════════════
+function getSigImg(memberId){
+  if(!memberId) return '';
+  const members=getMembers();
+  const m=members.find(x=>String(x.id)===String(memberId));
+  if(!m) return '';
+  if(m.sig) return `<img src="${m.sig}" style="max-height:44px;max-width:160px;object-fit:contain">`;
+  return `<div style="color:#999;font-style:italic;font-size:.8rem;line-height:1;padding-top:16px">${esc(m.name)}</div>`;
+}
+
+function getSigName(memberId){
+  if(!memberId) return '';
+  const m=getMembers().find(x=>String(x.id)===String(memberId));
+  return m?m.name:'';
+}
+
+function getSigRole(memberId){
+  if(!memberId) return '';
+  const m=getMembers().find(x=>String(x.id)===String(memberId));
+  return m?m.role:'';
+}
+
+function updateSigs(){
+  const leftId=document.getElementById('sig-left')?.value;
+  const rightId=document.getElementById('sig-right')?.value;
+  const ls=document.getElementById('doc-sig-left-img');
+  const rs=document.getElementById('doc-sig-right-img');
+  const ln=document.getElementById('doc-sig-left-name');
+  const rn=document.getElementById('doc-sig-right-name');
+  if(ls) ls.innerHTML=getSigImg(leftId);
+  if(rs) rs.innerHTML=getSigImg(rightId);
+  if(ln) ln.textContent=getSigName(leftId)||'';
+  if(rn) rn.textContent=getSigName(rightId)||'';
+  toast('Unterschriften aktualisiert');
+}
+
+// ════════════════════════════════════════════════
+// GENERATE PROTOKOLL
+// ════════════════════════════════════════════════
+function genProtokoll(){
+  const nr=document.getElementById('p-nr').value.trim();
+  const datum=fmtDate(document.getElementById('p-datum').value);
+  const einl=fmtDate(document.getElementById('p-einladung').value);
+  const beginn=getTimeVal('p-beginn');
+  const ende=getTimeVal('p-ende');
+  const ort=document.getElementById('p-ort').value.trim()||'—';
+  const gaeste=document.getElementById('p-gaeste').value.trim();
+  const freitext=document.getElementById('p-freitext').value.trim();
+  const sitzNr=nr?nr+'.':'XX.';
+
+  // Teilnehmende
+  const teiln=getSelectedMembers();
+  const teilnText=teiln.length?teiln.map(m=>m.name+(m.role?` (${m.role})`:'') ).join(', '):'—';
+
+  // Protokollführung
+  const prId=document.getElementById('p-protokoll').value;
+  const prMember=getMembers().find(m=>String(m.id)===String(prId));
+  const prName=prMember?prMember.name:'—';
+
+  // TOPs 1–3 (fix)
+  const [t1,t2,t3]=['top1','top2','top3'].map(id=>document.getElementById(id).value.trim());
+  const tverschiedenes=document.getElementById('top-verschiedenes').value.trim();
+
+  // Flexible TOPs + Beschlüsse
+  const flexTopsData=getFlexTopsData();
+  const beschl=getBeschluesse();
+  const leftId=document.getElementById('sig-left')?.value||'';
+  const rightId=document.getElementById('sig-right')?.value||'';
+
+  // HTML für flexible TOPs (4 bis N) in der richtigen Reihenfolge
+  const flexHtml=flexTopsData.map(ft=>{
+    const topHead=`<p class="top-head"><strong>TOP ${ft.num}&nbsp;&nbsp;&nbsp;&nbsp;${esc(ft.title||'(kein Titel)')}</strong></p>`;
+    if(ft.type==='beschluesse'){
+      const bHtml=ft.beschl.length
+        ?ft.beschl.map((b,i)=>`
+          <p class="besc-line" style="padding-left:1em;text-indent:-1em;margin-top:6pt">&ndash;&nbsp;&nbsp;<strong>Beschluss ${i+1}${b.betreff?' &ndash; '+esc(b.betreff):''}:</strong></p>
+          <p style="padding-left:2em;margin:1pt 0 2pt 0">${esc(b.text)}</p>
+          ${b.vote?`<p style="padding-left:2em;font-size:.92em;color:#444;margin-bottom:4pt">Abstimmungsergebnis: ${esc(b.vote)}</p>`:''}`
+        ).join('')
+        :'<p style="color:#aaa">&ndash;</p>';
+      return topHead+bHtml;
+    } else {
+      return topHead+(ft.content?bulletLinesSimple(ft.content):'<p style="color:#aaa">&ndash;</p>');
+    }
+  }).join('\n');
+  const vNum=flexTopsData.length+4;
+
+  const freitextSec2=freitext?`<hr class="doc-hr"><p class="top-head"><strong>Anlage / Weitere Notizen</strong></p><p style="white-space:pre-wrap">${esc(freitext)}</p>`:'';
+  const gastLine=gaeste?`<p>Weitere Anwesende:&nbsp;&nbsp;${esc(gaeste)}</p>`:'';
+
+  const html=`
+<p class="nds-title">Niederschrift</p>
+<p class="nds-sub">über die <strong>${esc(sitzNr)}&nbsp;Sitzung des Personalrats der Handwerkskammer Potsdam</strong> im Berichtszeitraum<br>am&nbsp;${esc(datum)} im&nbsp;${esc(ort)}</p>
+<div class="meta-block">
+  <p>Beginn:&nbsp;&nbsp;${esc(beginn)}&nbsp;Uhr&nbsp;&nbsp;&nbsp;/&nbsp;&nbsp;&nbsp;Ende:&nbsp;&nbsp;${esc(ende)}&nbsp;Uhr</p>
+  <p>Teilnehmende:&nbsp;&nbsp;${esc(teilnText)}</p>
+  <p>Protokollführung:&nbsp;&nbsp;${esc(prName)}</p>
+  ${gastLine}
+</div>
+<p style="margin-bottom:8pt">Zur Sitzung lud der Personalratsvorsitzende mit schriftlicher Einladung vom&nbsp;${esc(einl)}&nbsp;ein.</p>
+<hr class="doc-hr">
+<p class="top-head"><strong>TOP 1&nbsp;&nbsp;&nbsp;&nbsp;Genehmigung, Änderung oder Ergänzung der Tagesordnung</strong></p>
+<p class="top-content">${esc(t1)||'Die Tagesordnung wird bestätigt.'}</p>
+
+<p class="top-head"><strong>TOP 2&nbsp;&nbsp;&nbsp;&nbsp;Feststellung der Beschlussfähigkeit</strong></p>
+<p class="top-content">${esc(t2)||'Die Beschlussfähigkeit wird festgestellt.'}</p>
+
+<p class="top-head"><strong>TOP 3&nbsp;&nbsp;&nbsp;&nbsp;Berichte über die Tätigkeit des Vorstandes sowie zu Gesprächen mit Mitarbeitern, mit Vertretern der Abteilungen und mit der Geschäftsführung</strong></p>
+${t3 ? bulletLinesSimple(t3) : '<p class="bullet-line" style="color:#aaa">&ndash;</p>'}
+
+${flexHtml}
+
+<p class="top-head"><strong>TOP ${vNum}&nbsp;&nbsp;&nbsp;&nbsp;Verschiedenes</strong></p>
+${tverschiedenes ? bulletLinesSimple(tverschiedenes) : '<p class="bullet-line" style="color:#aaa">&ndash;</p>'}
+${freitextSec2}
+
+<table class="sig-table" style="width:100%;margin-top:44pt;border-collapse:collapse;border:none">
+  <tr>
+    <td class="sig-cell" style="width:45%;border:none;vertical-align:bottom">
+      <div class="sig-img" style="min-height:44pt" id="doc-sig-left-img">${getSigImg(leftId)}</div>
+      <div class="sig-line" style="border-top:1pt solid #333;padding-top:3pt;font-size:10pt" id="doc-sig-left-name">${esc(getSigName(leftId)||'')}</div>
+      <div class="sig-role" style="font-size:9pt;color:#444" id="doc-sig-left-role">Personalratsvorsitzende/r</div>
+    </td>
+    <td style="width:10%;border:none"></td>
+    <td class="sig-cell" style="width:45%;border:none;vertical-align:bottom">
+      <div class="sig-img" style="min-height:44pt" id="doc-sig-right-img">${getSigImg(rightId)}</div>
+      <div class="sig-line" style="border-top:1pt solid #333;padding-top:3pt;font-size:10pt" id="doc-sig-right-name">${esc(getSigName(rightId)||'')}</div>
+      <div class="sig-role" style="font-size:9pt;color:#444" id="doc-sig-right-role">protokollführendes Mitglied des Personalrats</div>
+    </td>
+  </tr>
+</table>
+<p class="doc-foot" style="margin-top:14pt;padding-top:5pt;border-top:1pt solid #eee;font-size:8pt;color:#bbb;text-align:center">Erstellt am ${esc(fmtDate(new Date().toISOString().split('T')[0]))} &mdash; Handwerkskammer Potsdam &mdash; ${esc(sitzNr)}&nbsp;Sitzung des Personalrats</p>`;
+
+  document.getElementById('proto-inner').innerHTML=html;
+  document.getElementById('proto-card').style.display='block';
+
+  // Beschlussmitteilung + Stellungnahme section
+  const bmSec=document.getElementById('bm-section');
+  bmSec.style.display=beschl.length?'block':'none';
+  document.getElementById('stell-section').style.display=beschl.length?'block':'none';
+
+  // Green button state — bleibt klickbar für Neugenerierung
+  const btn=document.getElementById('gen-btn');
+  btn.className='btn btn-success';
+  btn.style.fontSize='.94rem'; btn.style.padding='11px 24px';
+  btn.innerHTML='✓ Niederschrift generiert &nbsp;— erneut generieren';
+  const gs=document.getElementById('gen-status');
+  gs.style.display='';
+  gs.innerHTML='<span class="status-ok">✓ Vorschau unten — Unterschriften auswählen &amp; exportieren</span>';
+
+  document.getElementById('proto-card').scrollIntoView({behavior:'smooth',block:'start'});
+  toast('Niederschrift generiert ✓');
+}
+
+// ════════════════════════════════════════════════
+// GENERATE BESCHLUSSMITTEILUNG
+// ════════════════════════════════════════════════
+function genBeschluss(){
+  const nr=document.getElementById('p-nr').value.trim();
+  const datum=fmtDate(document.getElementById('p-datum').value);
+  const ort=document.getElementById('p-ort').value.trim()||'Potsdam';
+  const sitzNr=nr?nr+'.':'XX.';
+  const beschl=getBeschluesse();
+  if(!beschl.length){toast('Keine Beschlüsse eingetragen — bitte Beschlüsse-TOP ausfüllen');return;}
+
+  // Sicherstellen dass die Sektion sichtbar ist (auch wenn Niederschrift noch nicht generiert)
+  document.getElementById('bm-section').style.display='block';
+
+  const leftId=document.getElementById('sig-left')?.value||'';
+  const rightId=document.getElementById('sig-right')?.value||'';
+  const lName=getSigName(leftId)||'Personalratsvorsitzende/r';
+  const rName=getSigName(rightId)||'Protokollführung';
+
+  const betreffList=beschl.map(b=>b.betreff).filter(Boolean);
+  const betreffSubj=betreffList.length?betreffList.join(' / '):'';
+  const beschlHtml=beschl.map((b,i)=>`
+    <div style="margin:8pt 0;padding:7pt 10pt;border-left:2pt solid #1a3a5c;background:#fafbfd">
+      <p style="font-weight:bold;margin-bottom:3pt">Beschluss ${i+1}${b.betreff?' &ndash; '+esc(b.betreff):''}:</p>
+      <p>${esc(b.text)}</p>
+      ${b.vote?`<p style="margin-top:4pt;font-size:9pt;color:#555"><em>Abstimmungsergebnis: ${esc(b.vote)}</em></p>`:''}
+    </div>`).join('');
+
+  const today=fmtDate(new Date().toISOString().split('T')[0]);
+
+  const html=`
+<div class="doc-letter">
+  <div class="letter-sender">
+    <strong>Personalrat der Handwerkskammer Potsdam</strong><br>
+    <span style="font-size:9pt;color:#555">Postfach 60 08 51 &bull; 14408 Potsdam</span>
+  </div>
+  <p><strong>Hauptgeschäftsführer</strong><br>Herr Ralph Bührig</p>
+  <p style="text-align:right;margin:12pt 0">${esc(ort)}, den ${esc(today)}</p>
+  <p style="font-weight:bold;text-decoration:underline;margin:12pt 0 8pt 0">Beschlussmitteilung &ndash; ${esc(sitzNr)}&nbsp;Sitzung des Personalrats am ${esc(datum)}${betreffSubj?' &ndash; '+esc(betreffSubj):''}</p>
+  <p>Sehr geehrter Herr Bührig,</p>
+  <p style="margin-top:8pt">hiermit übermitteln wir Ihnen die in der <strong>${esc(sitzNr)}&nbsp;ordentlichen Sitzung</strong> des Personalrats der Handwerkskammer Potsdam am ${esc(datum)} gefassten Beschlüsse:</p>
+  <div style="margin:10pt 0">${beschlHtml}</div>
+  <p>Der Personalrat bittet um Kenntnisnahme.</p>
+  <p style="margin-top:8pt">Mit freundlichen Grüßen</p>
+</div>
+<table style="width:100%;margin-top:36pt;border-collapse:collapse;border:none">
+  <tr>
+    <td style="width:45%;border:none;vertical-align:bottom">
+      <div style="min-height:40pt">${getSigImg(leftId)}</div>
+      <div style="border-top:1pt solid #333;padding-top:3pt;font-size:10pt">${esc(lName)}</div>
+      <div style="font-size:9pt;color:#444">Personalratsvorsitzende/r</div>
+    </td>
+    <td style="width:10%;border:none"></td>
+    <td style="width:45%;border:none;vertical-align:bottom">
+      <div style="min-height:40pt">${getSigImg(rightId)}</div>
+      <div style="border-top:1pt solid #333;padding-top:3pt;font-size:10pt">${esc(rName)}</div>
+      <div style="font-size:9pt;color:#444">protokollführendes Mitglied des Personalrats</div>
+    </td>
+  </tr>
+</table>
+<p style="margin-top:12pt;padding-top:5pt;border-top:1pt solid #eee;font-size:8pt;color:#bbb;text-align:center">Handwerkskammer Potsdam &mdash; Personalrat &mdash; ${esc(sitzNr)}&nbsp;Sitzung &mdash; Beschlussmitteilung</p>`;
+
+  currentHTML.beschluss=html;
+  document.getElementById('bm-inner').innerHTML=html;
+  document.getElementById('bm-card').style.display='block';
+
+  const btn=document.getElementById('bm-btn');
+  btn.className='btn btn-success';
+  btn.style.fontSize='.94rem'; btn.style.padding='11px 24px';
+  btn.innerHTML='✓ Beschlussmitteilung generiert &nbsp;— erneut generieren';
+  const st=document.getElementById('bm-status');
+  st.style.display='';
+  st.innerHTML='<span class="status-ok">✓ Vorschau unten</span>';
+
+  document.getElementById('bm-card').scrollIntoView({behavior:'smooth',block:'start'});
+  toast('Beschlussmitteilung generiert ✓');
+}
+
+// ════════════════════════════════════════════════
+// GENERATE STELLUNGNAHME
+// ════════════════════════════════════════════════
+function genStellungnahme(){
+  const nr=document.getElementById('p-nr').value.trim();
+  const datum=fmtDate(document.getElementById('p-datum').value);
+  const ort=document.getElementById('p-ort').value.trim()||'Potsdam';
+  const sitzNr=nr?nr+'.':'XX.';
+  const beschl=getBeschluesse();
+  if(!beschl.length){toast('Keine Beschlüsse eingetragen — bitte Beschlüsse-TOP ausfüllen');return;}
+
+  document.getElementById('stell-section').style.display='block';
+
+  const leftId=document.getElementById('sig-left')?.value||'';
+  const rightId=document.getElementById('sig-right')?.value||'';
+  const lName=getSigName(leftId)||'Personalratsvorsitzende/r';
+  const rName=getSigName(rightId)||'Protokollführung';
+  const today=fmtDate(new Date().toISOString().split('T')[0]);
+
+  const stBetreffList=beschl.map(b=>b.betreff).filter(Boolean);
+  const stBetreffSubj=stBetreffList.length?stBetreffList.join(' / '):'';
+
+  const beschlBlocks=beschl.map((b,i)=>`
+    <div style="margin:10pt 0;padding:9pt 12pt;border-left:2pt solid #1a3a5c;background:#fafbfd">
+      <p style="font-weight:bold;margin-bottom:4pt">Angelegenheit ${i+1}${b.betreff?' &ndash; '+esc(b.betreff):''}:</p>
+      <p>${esc(b.text)}</p>
+      ${b.vote?`<p style="margin-top:3pt;font-size:9pt;color:#555"><em>Abstimmungsergebnis: ${esc(b.vote)}</em></p>`:''}
+      <div style="margin-top:9pt;padding-top:9pt;border-top:1pt dashed #ccc">
+        <p style="font-weight:bold;margin-bottom:4pt">Stellungnahme des Personalrats:</p>
+        <p>☐ &nbsp;Der Personalrat stimmt zu.</p>
+        <p>☐ &nbsp;Der Personalrat stimmt nicht zu.</p>
+        <p>☐ &nbsp;Der Personalrat schlägt folgende Abänderung vor:</p>
+      </div>
+      <div style="margin-top:8pt;padding-top:6pt;border-top:1pt solid #eee">
+        <p style="font-weight:bold;margin-bottom:4pt">Begründung:</p>
+        <div style="min-height:40pt;border-bottom:1pt solid #ccc;margin-top:2pt"></div>
+      </div>
+    </div>`).join('');
+
+  const html=`
+<div class="doc-letter">
+  <div class="letter-sender">
+    <strong>Personalrat der Handwerkskammer Potsdam</strong><br>
+    <span style="font-size:9pt;color:#555">Postfach 60 08 51 &bull; 14408 Potsdam</span>
+  </div>
+  <p><strong>Hauptgeschäftsführer</strong><br>Herr Ralph Bührig</p>
+  <p style="text-align:right;margin:12pt 0">${esc(ort)}, den ${esc(today)}</p>
+  <p style="font-weight:bold;text-decoration:underline;margin:12pt 0 8pt 0">Stellungnahme des Personalrats gem. § 68 BPersVG${stBetreffSubj?' &ndash; '+esc(stBetreffSubj):' &ndash; '+esc(sitzNr)+'&nbsp;Sitzung am '+esc(datum)}</p>
+  <p>Sehr geehrter Herr Bührig,</p>
+  <p style="margin-top:8pt">der Personalrat der Handwerkskammer Potsdam nimmt zu den zur Beteiligung vorgelegten Angelegenheiten aus der <strong>${esc(sitzNr)}&nbsp;ordentlichen Sitzung</strong> vom ${esc(datum)} wie folgt Stellung:</p>
+  ${beschlBlocks}
+  <p style="margin-top:12pt">Diese Stellungnahme ist innerhalb der gesetzlichen Frist zu beantworten.</p>
+  <p style="margin-top:8pt">Mit freundlichen Grüßen</p>
+</div>
+<table style="width:100%;margin-top:36pt;border-collapse:collapse;border:none">
+  <tr>
+    <td style="width:45%;border:none;vertical-align:bottom">
+      <div style="min-height:40pt">${getSigImg(leftId)}</div>
+      <div style="border-top:1pt solid #333;padding-top:3pt;font-size:10pt">${esc(lName)}</div>
+      <div style="font-size:9pt;color:#444">Personalratsvorsitzende/r</div>
+    </td>
+    <td style="width:10%;border:none"></td>
+    <td style="width:45%;border:none;vertical-align:bottom">
+      <div style="min-height:40pt">${getSigImg(rightId)}</div>
+      <div style="border-top:1pt solid #333;padding-top:3pt;font-size:10pt">${esc(rName)}</div>
+      <div style="font-size:9pt;color:#444">protokollführendes Mitglied des Personalrats</div>
+    </td>
+  </tr>
+</table>
+<p style="margin-top:12pt;padding-top:5pt;border-top:1pt solid #eee;font-size:8pt;color:#bbb;text-align:center">Handwerkskammer Potsdam &mdash; Personalrat &mdash; Stellungnahme zur ${esc(sitzNr)}&nbsp;Sitzung</p>`;
+
+  currentHTML.stellungnahme=html;
+  document.getElementById('stell-inner').innerHTML=html;
+  document.getElementById('stell-card').style.display='block';
+
+  const btn=document.getElementById('stell-btn');
+  btn.className='btn btn-success';
+  btn.style.fontSize='.94rem'; btn.style.padding='11px 24px';
+  btn.innerHTML='✓ Stellungnahme generiert &nbsp;— erneut generieren';
+  const st=document.getElementById('stell-status');
+  st.style.display='';
+  st.innerHTML='<span class="status-ok">✓ Vorschau unten</span>';
+  document.getElementById('stell-card').scrollIntoView({behavior:'smooth',block:'start'});
+  toast('Stellungnahme generiert ✓');
+}
+
+// ════════════════════════════════════════════════
+// GENERATE ANWESENHEITSLISTE
+// ════════════════════════════════════════════════
+let awMemberData=[];
+
+function renderAWMembers(){
+  const list=document.getElementById('aw-members-list');
+  awMemberData=[];
+  getMembers().forEach((m,i)=>{
+    awMbrN++;
+    const n=awMbrN;
+    awMemberData.push(n);
+    const div=document.createElement('div');
+    div.id='awm-'+n;
+    div.style.cssText='display:flex;gap:8px;align-items:center;margin-bottom:7px';
+    div.innerHTML=`
+      <input type="text" id="awm-n-${n}" value="${esc(m.name)}" style="flex:1">
+      <select id="awm-s-${n}" style="width:150px">
+        <option value="anwesend">✅ Anwesend</option>
+        <option value="entschuldigt">⚪ Entschuldigt</option>
+        <option value="unentschuldigt">❌ Unentschuldigt</option>
+      </select>
+      <button class="bi" onclick="removeEl('awm-${n}')">✕</button>`;
+    list.appendChild(div);
+  });
+}
+
+function addAWMember(name='',status='anwesend'){
+  awMbrN++;
+  const n=awMbrN;
+  const list=document.getElementById('aw-members-list');
+  const div=document.createElement('div');
+  div.id='awm-'+n;
+  div.style.cssText='display:flex;gap:8px;align-items:center;margin-bottom:7px';
+  div.innerHTML=`
+    <input type="text" id="awm-n-${n}" placeholder="Vor- und Nachname, Funktion" value="${esc(name)}" style="flex:1">
+    <select id="awm-s-${n}" style="width:150px">
+      <option value="anwesend"${status==='anwesend'?' selected':''}>✅ Anwesend</option>
+      <option value="entschuldigt"${status==='entschuldigt'?' selected':''}>⚪ Entschuldigt</option>
+      <option value="unentschuldigt"${status==='unentschuldigt'?' selected':''}>❌ Unentschuldigt</option>
+    </select>
+    <button class="bi" onclick="removeEl('awm-${n}')">✕</button>`;
+  list.appendChild(div);
+}
+
+function getAWMembers(){
+  const members=[];
+  document.querySelectorAll('[id^="awm-"]').forEach(el=>{
+    if(!el.id.match(/^awm-\d+$/)) return;
+    const n=el.id.replace('awm-','');
+    const name=document.getElementById('awm-n-'+n)?.value.trim()||'';
+    const status=document.getElementById('awm-s-'+n)?.value||'anwesend';
+    if(name) members.push({name,status});
+  });
+  return members;
+}
+
+function genAnwesenheit(){
+  const datum=fmtDate(document.getElementById('a-datum').value);
+  const nr=document.getElementById('a-nr').value.trim()||'—';
+  const art=document.getElementById('a-art').value.trim()||'Personalratssitzung';
+  const ort=document.getElementById('a-ort').value.trim()||'—';
+  const gaeste=document.getElementById('a-gaeste').value.trim();
+  const members=getAWMembers();
+  const awLeftId=document.getElementById('aw-sig-left')?.value||'';
+  const awRightId=document.getElementById('aw-sig-right')?.value||'';
+
+  const sc={anwesend:'#15803d',entschuldigt:'#9ca3af',unentschuldigt:'#dc2626'};
+  const sl={anwesend:'Anwesend',entschuldigt:'Entschuldigt',unentschuldigt:'Unentschuldigt'};
+
+  const rows=members.length
+    ?members.map((m,i)=>`<tr><td style="text-align:center;width:34px">${i+1}</td><td>${esc(m.name)}</td><td style="width:120px;color:${sc[m.status]};font-weight:600">${sl[m.status]}</td><td style="width:130px">&nbsp;</td></tr>`).join('')
+    :'<tr><td colspan="4" style="text-align:center;color:#aaa;font-style:italic">Keine Mitglieder eingetragen</td></tr>';
+
+  const anwCount=members.filter(m=>m.status==='anwesend').length;
+
+  let gastSec='';
+  if(gaeste){
+    const gArr=gaeste.split('\n').map(s=>s.trim()).filter(Boolean);
+    gastSec=`<br><div style="font-weight:bold;font-size:.83rem;text-transform:uppercase;letter-spacing:.04em;color:#1a3a5c;border-bottom:1px solid #bbb;padding-bottom:3px;margin-bottom:7px">Weitere Anwesende / Gäste</div>
+    <table style="width:100%;border-collapse:collapse;font-size:.85rem"><thead><tr style="background:#1a3a5c;color:#fff"><th style="padding:6px 8px;width:34px;text-align:center">#</th><th style="padding:6px 8px;text-align:left" colspan="2">Name, Funktion</th><th style="padding:6px 8px;width:130px">Unterschrift</th></tr></thead><tbody>
+    ${gArr.map((g,i)=>`<tr><td style="text-align:center">${i+1}</td><td colspan="2">${esc(g)}</td><td>&nbsp;</td></tr>`).join('')}
+    </tbody></table>`;
+  }
+
+  const html=`
+<div class="doc-nds"><div class="t1">Anwesenheitsliste</div><div class="t2">${esc(art)}</div></div>
+<div class="doc-meta">
+  <div class="doc-meta-r"><span class="lbl">Datum:</span><span>${esc(datum)}</span></div>
+  <div class="doc-meta-r"><span class="lbl">Sitzung Nr.:</span><span>${esc(nr)}</span></div>
+  <div class="doc-meta-r"><span class="lbl">Ort:</span><span>${esc(ort)}</span></div>
+  <div class="doc-meta-r"><span class="lbl">Anwesend:</span><span>${anwCount} von ${members.length} Mitgliedern</span></div>
+</div>
+<hr class="doc-hr">
+<div style="font-weight:bold;font-size:.83rem;text-transform:uppercase;letter-spacing:.04em;color:#1a3a5c;border-bottom:1px solid #bbb;padding-bottom:3px;margin-bottom:7px">Mitglieder des Personalrats</div>
+<table style="width:100%;border-collapse:collapse;font-size:.85rem">
+  <thead><tr style="background:#1a3a5c;color:#fff"><th style="padding:6px 8px;width:34px;text-align:center">#</th><th style="padding:6px 8px;text-align:left">Name, Funktion</th><th style="padding:6px 8px;width:120px">Status</th><th style="padding:6px 8px;width:130px">Unterschrift</th></tr></thead>
+  <tbody>${rows}</tbody>
+</table>
+${gastSec}
+<div class="doc-sigs"><div><div class="doc-sig-name" id="aw-doc-sig-left-img">${getSigImg(awLeftId)}</div><div class="doc-sig-line" id="aw-doc-sig-left-name">${esc(getSigName(awLeftId)||'Personalratsvorsitzende/r')}</div></div><div><div class="doc-sig-name" id="aw-doc-sig-right-img">${getSigImg(awRightId)}</div><div class="doc-sig-line" id="aw-doc-sig-right-name">${esc(getSigName(awRightId)||'Protokollführung')}</div></div></div>
+<div class="doc-foot">Erstellt am ${esc(fmtDate(new Date().toISOString().split('T')[0]))} &mdash; Handwerkskammer Potsdam &mdash; ${esc(nr)}. Sitzung</div>`;
+
+  currentHTML.anwesenheit=html;
+  document.getElementById('aw-inner').innerHTML=html;
+  const card=document.getElementById('aw-card');
+  card.style.display='block';
+
+  const btn=document.getElementById('aw-gen-btn');
+  btn.className='btn btn-success';
+  btn.innerHTML='✓ Anwesenheitsliste generiert &nbsp;— erneut generieren';
+  const st=document.getElementById('aw-status');
+  st.style.display='';
+  st.innerHTML='<span class="status-ok">✓ Vorschau unten</span>';
+
+  card.scrollIntoView({behavior:'smooth',block:'start'});
+  toast('Anwesenheitsliste generiert ✓');
+}
+
+// ════════════════════════════════════════════════
+// PRINT CSS
+// ════════════════════════════════════════════════
+const PCSS=`body{font-family:'Calibri','Calibri Light',Calibri,Arial,sans-serif;line-height:1.55;padding:2cm 2.5cm;color:#111;font-size:11pt;text-align:left}
+p{margin:0 0 4pt 0}
+.nds-title{text-align:center;font-weight:bold;font-size:11pt;margin:0 0 6pt 0}
+.nds-sub{margin:0 0 8pt 0;font-size:11pt}
+.meta-block{margin:6pt 0;font-size:11pt;line-height:1.6}
+.top-head{font-weight:bold;margin:10pt 0 2pt 0;font-size:11pt}
+.top-content{margin:0 0 4pt 0;font-size:11pt}
+.bullet-line{margin:0;padding-left:0;font-size:11pt}
+.bullet-line::before{content:'\\2013\\a0'}
+.besc-line{margin:2pt 0;font-size:11pt}
+.doc-hr{border:none;border-top:1px solid #333;margin:8pt 0}
+.sig-table{width:100%;margin-top:40pt;border-collapse:collapse}
+.sig-cell{width:45%;vertical-align:bottom}
+.sig-spacer{width:10%}
+.sig-img{min-height:44pt}
+.sig-line{border-top:1pt solid #333;padding-top:3pt;font-size:10pt}
+.sig-role{font-size:9pt;color:#444;margin-top:2pt}
+.doc-foot{margin-top:14pt;padding-top:5pt;border-top:1pt solid #ccc;font-size:8pt;color:#aaa;text-align:center}
+.doc-letter{font-size:11pt;line-height:1.6}
+.letter-sender{margin-bottom:18pt;font-size:10pt;color:#555;border-bottom:1pt solid #ccc;padding-bottom:8pt}
+.letter-recv{margin-bottom:12pt}
+.letter-date{text-align:right;margin-bottom:16pt}
+.letter-subj{font-weight:bold;margin:14pt 0 10pt 0;text-decoration:underline}
+.letter-body p{margin-bottom:6pt}
+.letter-sigs{display:table;width:100%;margin-top:40pt}
+table{width:100%;border-collapse:collapse;font-size:11pt}
+th,td{border:1pt solid #ccc;padding:5pt 7pt}th{background:#1a3a5c;color:#fff}
+tr:nth-child(even) td{background:#f8f9fb}
+@media print{@page{margin:2cm 2.5cm;size:A4}}
+`;
+
+function doPrint(contentId, title){
+  const html=document.getElementById(contentId).innerHTML;
+  const w=window.open('','_blank','width=820,height=1000');
+  if(!w){
+    alert('PDF-Export: Popups sind blockiert.\n\nBitte erlaube Popups für diese Seite:\nChrome/Edge: oben rechts auf das Popup-Symbol klicken → "Popups immer zulassen"\n\nDann erneut auf den PDF-Button klicken.');
+    return;
+  }
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+title+'</title><style>'+PCSS+'</style></head><body>'+html+'</body></html>');
+  w.document.close();
+  setTimeout(function(){ w.focus(); w.print(); }, 500);
+}
+
+function doWord(type, label){
+  const html=type==='protokoll'?document.getElementById('proto-inner')?.innerHTML
+            :type==='anwesenheit'?document.getElementById('aw-inner')?.innerHTML
+            :type==='stellungnahme'?document.getElementById('stell-inner')?.innerHTML
+            :document.getElementById('bm-inner')?.innerHTML;
+  if(!html){toast('Bitte zuerst generieren');return;}
+  const nr=document.getElementById('p-nr')?.value.trim()||'XX';
+  const datum=document.getElementById('p-datum')?.value||'Datum';
+  const blob=new Blob(['﻿<html xmlns:o="urn:schemas-microsoft-com:office:office"><head><meta charset="UTF-8"><style>'+PCSS+'</style></head><body>'+html+'</body></html>'],{type:'application/msword'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`HWK_${label||type}_${nr}Sitzung_${datum}.doc`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+
+function flashExport(btn, fnName, arg1, arg2){
+  const orig=btn.innerHTML, origCls=btn.className;
+  btn.className='btn btn-ok btn-sm';
+  btn.innerHTML='✓ '+arg2+' wird erstellt…';
+  window[fnName](arg1, arg2);
+  setTimeout(()=>{btn.className=origCls;btn.innerHTML=orig;},2000);
+}
+
+// ════════════════════════════════════════════════
+// HISTORY
+// ════════════════════════════════════════════════
+function saveHist(type){
+  const htmlEl=type==='protokoll'?'proto-inner':type==='anwesenheit'?'aw-inner':'bm-inner';
+  const html=document.getElementById(htmlEl)?.innerHTML;
+  if(!html){toast('Bitte zuerst generieren');return;}
+  const nr=document.getElementById('p-nr')?.value.trim()||document.getElementById('a-nr')?.value.trim()||'XX';
+  const datum=type==='anwesenheit'?document.getElementById('a-datum')?.value:document.getElementById('p-datum')?.value;
+  const labels={protokoll:'Niederschrift',anwesenheit:'Anwesenheitsliste',beschluss:'Beschlussmitteilung',stellungnahme:'Stellungnahme'};
+  const entry={id:Date.now(),type,label:`${labels[type]} – ${fmtDate(datum)} (${nr}. Sitzung)`,saved:new Date().toLocaleDateString('de-DE'),html};
+  const h=getHistLS();h.unshift(entry);setHistLS(h);
+  toast('In Historie gespeichert ✓');renderHist();
+}
+
+function renderHist(){
+  const h=getHistLS();
+  const cont=document.getElementById('hist-cont');
+  const clr=document.getElementById('clear-all');
+  if(!cont)return;
+  if(!h.length){
+    cont.innerHTML='<div class="empty"><div class="ei">📂</div><p>Noch keine Protokolle gespeichert.</p><p style="margin-top:6px">Generiere ein Dokument und klicke auf <strong>„💾 In Historie"</strong>.</p></div>';
+    if(clr)clr.style.display='none';return;
+  }
+  if(clr)clr.style.display='';
+  const icons={protokoll:'📄',anwesenheit:'✅',beschluss:'📨',stellungnahme:'📝'};
+  cont.innerHTML=h.map(e=>`
+    <div class="hi">
+      <div class="hi-icon">${icons[e.type]||'📄'}</div>
+      <div class="hi-info"><strong>${esc(e.label)}</strong><small>Gespeichert am ${esc(e.saved)}</small></div>
+      <div class="hi-btns">
+        <button class="btn btn-ghost btn-sm" onclick="viewHist(${e.id})">👁</button>
+        <button class="btn btn-success btn-sm" onclick="printHist(${e.id})">🖨 PDF</button>
+        <button class="btn btn-ghost btn-sm" onclick="wordHist(${e.id})">📝 Word</button>
+        <button class="btn btn-muted btn-sm" onclick="delHist(${e.id})">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+function viewHist(id){const e=getHistLS().find(x=>x.id===id);if(!e)return;const w=window.open('','_blank','width=860,height=1050');w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${esc(e.label)}</title><style>${PCSS}</style></head><body>${e.html}</body></html>`);w.document.close();}
+function printHist(id){const e=getHistLS().find(x=>x.id===id);if(e)doPrint_html(e.html,e.label);}
+function doPrint_html(html,title){const w=window.open('','_blank','width=820,height=1000');w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${title}</title><style>${PCSS}</style></head><body>${html}</body></html>`);w.document.close();setTimeout(()=>{w.focus();w.print();},400);}
+function wordHist(id){const e=getHistLS().find(x=>x.id===id);if(!e)return;const blob=new Blob(['﻿<html xmlns:o="urn:schemas-microsoft-com:office:office"><head><meta charset="UTF-8"><style>'+PCSS+'</style></head><body>'+e.html+'</body></html>'],{type:'application/msword'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=esc(e.label).replace(/[^\w\-]/g,'_')+'.doc';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);}
+function delHist(id){setHistLS(getHistLS().filter(x=>x.id!==id));renderHist();toast('Eintrag gelöscht');}
+function clearAll(){if(confirm('Alle gespeicherten Protokolle löschen?')){localStorage.removeItem('hwk_hist_v2');renderHist();toast('Historie gelöscht');}}
+
+// ════════════════════════════════════════════════
+// STAMMDATEN
+// ════════════════════════════════════════════════
+function renderStammdaten(){
+  const members=getMembers();
+  const list=document.getElementById('mbr-edit-list');
+  if(!list)return;
+  list.innerHTML='';
+  members.forEach(m=>{
+    const div=document.createElement('div');
+    div.className='mbr-row';
+    div.id='med-'+m.id;
+    div.innerHTML=`
+      <input type="text" id="med-n-${m.id}" value="${esc(m.name)}" placeholder="Name" style="flex:2">
+      <input type="text" id="med-r-${m.id}" value="${esc(m.role)}" placeholder="Rolle/Funktion" style="flex:1">
+      <div class="sig-thumb" id="med-st-${m.id}" onclick="triggerSigUpload(${m.id})" title="Unterschrift hochladen (PNG/JPG)">
+        ${m.sig?`<img src="${m.sig}">`:'<span>Unterschrift</span>'}
+      </div>
+      <input type="file" id="med-sf-${m.id}" accept="image/*" style="display:none" onchange="loadSig(${m.id},this)">
+      ${m.sig?`<button class="bi" onclick="clearSig(${m.id})" title="Unterschrift löschen">✕</button>`:'<span style="width:26px"></span>'}
+      <button class="bi" onclick="deleteMemberRow(${m.id})" title="Mitglied entfernen">🗑</button>`;
+    list.appendChild(div);
+  });
+  document.getElementById('besc-vorlage').value=getVorlage();
+}
+
+function addMemberRow(){
+  const members=getMembers();
+  const newId=Math.max(...members.map(m=>m.id),0)+1;
+  members.push({id:newId,name:'',role:'Mitglied',sig:''});
+  setMembersLS(members);
+  renderStammdaten();
+}
+
+function deleteMemberRow(id){
+  const members=getMembers().filter(m=>m.id!==id);
+  setMembersLS(members);
+  renderStammdaten();
+}
+
+function triggerSigUpload(id){
+  document.getElementById('med-sf-'+id)?.click();
+}
+
+function loadSig(id, input){
+  const file=input.files[0];
+  if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    const members=getMembers();
+    const m=members.find(x=>x.id===id);
+    if(m){m.sig=e.target.result;setMembersLS(members);}
+    renderStammdaten();
+    toast('Unterschrift gespeichert ✓');
+  };
+  r.readAsDataURL(file);
+}
+
+function clearSig(id){
+  const members=getMembers();
+  const m=members.find(x=>x.id===id);
+  if(m){m.sig='';setMembersLS(members);}
+  renderStammdaten();
+  toast('Unterschrift entfernt');
+}
+
+function saveMembers(){
+  const members=getMembers();
+  members.forEach(m=>{
+    const n=document.getElementById('med-n-'+m.id);
+    const r=document.getElementById('med-r-'+m.id);
+    if(n) m.name=n.value.trim();
+    if(r) m.role=r.value.trim();
+  });
+  setMembersLS(members);
+  renderMemberCheckboxes();
+  renderProtokollDropdown();
+  renderSigPickers();
+  renderAWSigPickers();
+  updateTeilnSummary();
+  toast('Mitglieder gespeichert ✓');
+}
+
+function saveVorlage(){
+  const val=document.getElementById('besc-vorlage').value;
+  localStorage.setItem('hwk_vorlage',val);
+  toast('Vorlage gespeichert ✓');
+}
+
+// ════════════════════════════════════════════════
+// CLEAR FORMS
+// ════════════════════════════════════════════════
+function clearForm(){
+  if(!confirm('Formular leeren? Alle Eingaben gehen verloren.'))return;
+  const today=new Date().toISOString().split('T')[0];
+  ['p-nr','p-ort','p-gaeste','p-freitext'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('p-datum').value=today;
+  document.getElementById('p-einladung').value=today;
+  buildTimeSelect('p-beginn','10:00');
+  buildTimeSelect('p-ende','12:00');
+  document.getElementById('top1').value='Die TO wird bestätigt.';
+  document.getElementById('top2').value='Die Beschlussfähigkeit wird festgestellt.';
+  document.getElementById('top3').value='';
+  document.getElementById('top-verschiedenes').value='';
+  document.getElementById('flex-tops').innerHTML=''; ftNextId=0; beschN=0;
+  initFlexTops();
+  document.getElementById('proto-card').style.display='none';
+  document.getElementById('bm-section').style.display='none';
+  document.getElementById('bm-card').style.display='none';
+  document.getElementById('stell-section').style.display='none';
+  document.getElementById('stell-card').style.display='none';
+  document.getElementById('inv-status').style.display='none';
+  const btn=document.getElementById('gen-btn');
+  btn.className='btn btn-primary'; btn.innerHTML='📄 Niederschrift generieren';
+  btn.style.fontSize='.94rem'; btn.style.padding='11px 24px';
+  document.getElementById('gen-status').style.display='none';
+  const sbtn=document.getElementById('stell-btn');
+  if(sbtn){sbtn.className='btn btn-primary';sbtn.style.fontSize='.94rem';sbtn.style.padding='11px 24px';sbtn.innerHTML='📝 Stellungnahme des Personalrats generieren';}
+  const bmbtn=document.getElementById('bm-btn');
+  if(bmbtn){bmbtn.className='btn btn-primary';bmbtn.style.fontSize='.94rem';bmbtn.style.padding='11px 24px';bmbtn.innerHTML='📨 Beschlussmitteilung generieren';}
+  document.getElementById('stell-status').style.display='none';
+  selectAllMembers(true);
+  toast('Formular geleert');
+}
+
+function clearAForm(){
+  if(!confirm('Formular leeren?'))return;
+  document.getElementById('a-datum').value=new Date().toISOString().split('T')[0];
+  ['a-nr','a-ort','a-gaeste'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('a-art').value='Ordentliche Sitzung des Personalrats der Handwerkskammer Potsdam';
+  document.getElementById('aw-members-list').innerHTML=''; awMbrN=0;
+  renderAWMembers();
+  document.getElementById('aw-card').style.display='none';
+  const btn=document.getElementById('aw-gen-btn');
+  btn.className='btn btn-primary'; btn.innerHTML='✅ Anwesenheitsliste generieren';
+  document.getElementById('aw-status').style.display='none';
+  toast('Formular geleert');
+}
+
+// ════════════════════════════════════════════════
+// START
+// ════════════════════════════════════════════════
+init();
+</script>
+</body>
+</html>
