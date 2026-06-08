@@ -73,6 +73,11 @@ textarea{resize:vertical;line-height:1.5}
 .ft-ctrl:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
 .ft-ctrl:disabled{opacity:.3;cursor:default;pointer-events:none}
 .top-block.ft-fixed{border-style:dashed;background:#fafbfd}
+.ft-items-list{display:flex;flex-direction:column;gap:7px}
+.ft-item{background:#f8fafd;border:1px solid var(--border);border-radius:6px;padding:9px 11px}
+.ft-item-head{display:flex;gap:6px;align-items:center;margin-bottom:5px}
+.ft-item-head input{flex:1;font-weight:600;font-size:.84rem;border:none;background:transparent;border-bottom:1px solid var(--border);border-radius:0;padding:4px 2px;color:var(--text)}
+.ft-item-head input:focus{outline:none;border-bottom-color:var(--primary)}
 /* Preview */
 .pcard{background:#fff;border-radius:var(--r);box-shadow:var(--shl);overflow:hidden;margin-bottom:14px}
 .ptoolbar{background:#f8f9fc;border-bottom:1px solid var(--border);padding:10px 18px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -216,8 +221,11 @@ textarea{resize:vertical;line-height:1.5}
 
     <!-- TOP 3 -->
     <div class="top-block">
-      <div class="top-hd"><span class="top-badge">TOP 3</span><span class="top-title">Berichte über die Tätigkeit des Vorstandes sowie zu Gesprächen mit Mitarbeitern, mit Vertretern der Abteilungen und mit der Geschäftsführung</span><span class="top-hint">je Zeile → „—"</span></div>
-      <div class="top-body"><textarea id="top3" rows="4" placeholder="Bericht 1&#10;Bericht 2&#10;..."></textarea></div>
+      <div class="top-hd"><span class="top-badge">TOP 3</span><span class="top-title">Berichte über die Tätigkeit des Vorstandes sowie zu Gesprächen mit Mitarbeitern, mit Vertretern der Abteilungen und mit der Geschäftsführung</span><span class="top-hint">je Unterpunkt ein Block</span></div>
+      <div class="top-body">
+        <div id="ft-items-top3" class="ft-items-list"></div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:6px" onclick="addFTItem('top3')">+ Unterpunkt hinzufügen</button>
+      </div>
     </div>
 
     <!-- Flexible TOPs 4 bis N — verschiebbar, löschbar, erweiterbar -->
@@ -420,7 +428,7 @@ textarea{resize:vertical;line-height:1.5}
 // ════════════════════════════════════════════════
 // CONSTANTS & STATE
 // ════════════════════════════════════════════════
-let ftNextId = 0, beschN = 0, awMbrN = 0;
+let ftNextId = 0, ftiNextId = 0, beschN = 0, awMbrN = 0;
 let currentHTML = { protokoll:'', anwesenheit:'', beschluss:'', stellungnahme:'' };
 
 const DEFAULT_MEMBERS = [
@@ -525,6 +533,7 @@ function init(){
   document.getElementById('a-datum').value = today;
   buildTimeSelect('p-beginn','10:00');
   buildTimeSelect('p-ende','12:00');
+  addFTItem('top3','','');
   initFlexTops();
   renderMemberCheckboxes();
   renderProtokollDropdown();
@@ -737,7 +746,8 @@ function addFlexTop(type, title='', content=''){
          <button class="btn btn-ghost btn-sm" onclick="addBeschluss()">+ Beschluss hinzufügen</button>
          <button class="btn btn-primary btn-sm" onclick="genBeschluss()" style="margin-left:auto">📨 Beschlussmitteilung an GF generieren</button>
        </div>`
-    : `<textarea id="ftc-${id}" rows="3" placeholder="Inhalt / Punkte (je Zeile ein Aufzählungspunkt)">${esc(content)}</textarea>`;
+    : `<div id="ft-items-${id}" class="ft-items-list"></div>
+       <button class="btn btn-ghost btn-sm" style="margin-top:6px" onclick="addFTItem(${id})">+ Unterpunkt hinzufügen</button>`;
 
   div.innerHTML=`
     <div class="top-hd" style="gap:6px">
@@ -757,7 +767,50 @@ function addFlexTop(type, title='', content=''){
 }
 
 function addFlexTopNormal(title='', content=''){
-  addFlexTop('normal', title, content);
+  addFlexTop('normal', title);
+  const id=ftNextId;
+  const lines=content?content.split('\n').map(s=>s.trim()).filter(Boolean):[];
+  if(lines.length){ lines.forEach(l=>addFTItem(id,l,'')); }
+  else { addFTItem(id,'',''); }
+}
+
+function addFTItem(topId, heading='', notes=''){
+  ftiNextId++;
+  const n=ftiNextId;
+  const container=document.getElementById('ft-items-'+topId);
+  if(!container) return;
+  const div=document.createElement('div');
+  div.className='ft-item'; div.id='fti-'+n;
+  div.innerHTML=`
+    <div class="ft-item-head">
+      <input type="text" id="ftih-${n}" value="${esc(heading)}" placeholder="Teilüberschrift / Unterpunkt (optional — leer lassen für freien Notizblock)">
+      <button class="bi" onclick="removeEl('fti-${n}')" title="Unterpunkt löschen">&#x2715;</button>
+    </div>
+    <textarea id="ftin-${n}" rows="2" placeholder="Anmerkungen / Stichpunkte aus der Sitzung…">${esc(notes)}</textarea>`;
+  container.appendChild(div);
+}
+
+function getItemsFromContainer(containerId){
+  const c=document.getElementById(containerId);
+  if(!c) return [];
+  return [...c.querySelectorAll('.ft-item')].map(item=>{
+    const n=item.id.replace('fti-','');
+    return {
+      heading: document.getElementById('ftih-'+n)?.value.trim()||'',
+      notes:   document.getElementById('ftin-'+n)?.value.trim()||''
+    };
+  });
+}
+
+function renderStructuredItemsHtml(items){
+  const html=(items||[]).map(item=>{
+    if(!item.heading&&!item.notes) return '';
+    let h='';
+    if(item.heading) h+=`<p style="font-weight:bold;margin:5pt 0 1pt 0">${esc(item.heading)}</p>`;
+    if(item.notes)   h+=bulletLinesSimple(item.notes);
+    return h;
+  }).filter(Boolean).join('');
+  return html||'<p style="color:#aaa">&ndash;</p>';
 }
 
 function addFlexTopBeschluss(title=''){
@@ -816,8 +869,7 @@ function getFlexTopsData(){
     if(type==='beschluesse'){
       return {num:i+4, type, title, beschl:getBeschluesse()};
     } else {
-      const contentEl=document.getElementById('ftc-'+id);
-      return {num:i+4, type, title, content:contentEl?contentEl.value.trim():''};
+      return {num:i+4, type, title, items:getItemsFromContainer('ft-items-'+id)};
     }
   });
 }
@@ -914,18 +966,29 @@ async function readInvitation(file){
 }
 
 function parseInvitation(text){
-  const r={nr:'',datum:'',beginn:'',ort:'',tops:{}};
+  const r={nr:'',datum:'',einladung:'',beginn:'',ort:'',tops:{}};
   // Nr: "20. Sitzung" oder "zur X. Sitzung"
   const nrM=text.match(/(?:zur\s+)?(\d+)\.\s*Sitzung/i)||text.match(/Sitzung\s+Nr\.?\s*(\d+)/i);
   if(nrM) r.nr=nrM[1];
-  // Date: TT.MM.JJJJ — pick the first real date (not a time reference)
-  const dM=text.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
-  if(dM) r.datum=`${dM[3]}-${dM[2].padStart(2,'0')}-${dM[1].padStart(2,'0')}`;
-  // Time: "um HH:MM Uhr" or "Beginn: HH:MM"
-  const tM=text.match(/um\s+(\d{1,2})[:\.](\d{2})\s*Uhr/i)
-         ||text.match(/Beginn[:\s]+(\d{1,2})[:\.](\d{2})/i)
-         ||text.match(/(\d{1,2})[:\.](\d{2})\s*Uhr/i);
-  if(tM) r.beginn=`${tM[tM.length-2].padStart(2,'0')}:${tM[tM.length-1]}`;
+  // Einladungsdatum: "Stadtname, TT.MM.JJJJ" (oben rechts im Brief)
+  const einlM=text.match(/[A-ZÜÄÖ][a-züäö]{2,},\s*(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+  if(einlM) r.einladung=`${einlM[3]}-${einlM[2].padStart(2,'0')}-${einlM[1].padStart(2,'0')}`;
+  // Veranstaltungsdatum + Uhrzeit: "Wochentag, TT.MM.JJJJ, um HH:MM Uhr" — bevorzugte Quelle
+  const sitzM=text.match(/(?:Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag)[,\s]+(\d{1,2})\.(\d{1,2})\.(\d{4})[,\s]+um\s+(\d{1,2})[:\.](\d{2})\s*Uhr/i);
+  if(sitzM){
+    r.datum=`${sitzM[3]}-${sitzM[2].padStart(2,'0')}-${sitzM[1].padStart(2,'0')}`;
+    r.beginn=`${sitzM[4].padStart(2,'0')}:${sitzM[5]}`;
+  } else {
+    // Fallback: erste Datumszeile die KEINE Einladungsdatum-Zeile ist
+    for(const ln of text.split('\n')){
+      if(/^[A-ZÜÄÖ][a-züäö]{2,},\s*\d{1,2}\.\d{1,2}\.\d{4}/.test(ln.trim())) continue;
+      const dm=ln.match(/(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+      if(dm){ r.datum=`${dm[3]}-${dm[2].padStart(2,'0')}-${dm[1].padStart(2,'0')}`; break; }
+    }
+    const tM=text.match(/um\s+(\d{1,2})[:\.](\d{2})\s*Uhr/i)
+            ||text.match(/Beginn[:\s]+(\d{1,2})[:\.](\d{2})/i);
+    if(tM) r.beginn=`${tM[tM.length-2].padStart(2,'0')}:${tM[tM.length-1]}`;
+  }
   // Ort: "im Raum XYZ" — stop before "statt", comma, period or end of line
   const oM=text.match(/im\s+(Raum\s+[^\n,\.]+?)(?=\s+statt\b|\s*[,\.]\s|\s*\n|$)/i)
          ||text.match(/(?:Raum\s*:|Ort\s*:)\s*([^\n,\.]+?)(?=\s+statt\b|\s*\n|$)/i);
@@ -951,12 +1014,29 @@ function parseInvitation(text){
 function applyInvitationData(p){
   if(p.nr) document.getElementById('p-nr').value=p.nr;
   if(p.datum) document.getElementById('p-datum').value=p.datum;
-  if(p.beginn) setTimeVal('p-beginn',p.beginn);
+  if(p.einladung) document.getElementById('p-einladung').value=p.einladung;
+  if(p.beginn){
+    setTimeVal('p-beginn',p.beginn);
+    // Ende = Beginn + 90 Minuten, auf 5 Minuten gerundet
+    const [bH,bM]=p.beginn.split(':').map(Number);
+    const eTotal=bH*60+bM+90;
+    const eH=Math.floor(eTotal/60), eRaw=eTotal%60;
+    const eM=Math.round(eRaw/5)*5;
+    const eHf=eM>=60?eH+1:eH, eMf=eM>=60?eM-60:eM;
+    setTimeVal('p-ende',`${String(eHf).padStart(2,'0')}:${String(eMf).padStart(2,'0')}`);
+  }
   if(p.ort) document.getElementById('p-ort').value=p.ort;
-  // Feste TOPs 1–3 befüllen
+  // Feste TOPs 1–2 befüllen (Freitext)
   if(p.tops[1]?.content) document.getElementById('top1').value=p.tops[1].content;
   if(p.tops[2]?.content) document.getElementById('top2').value=p.tops[2].content;
-  if(p.tops[3]?.content) document.getElementById('top3').value=p.tops[3].content;
+  // TOP 3 strukturiert befüllen
+  const c3=document.getElementById('ft-items-top3');
+  if(c3){
+    c3.innerHTML='';
+    const lines3=(p.tops[3]?.content||'').split('\n').map(s=>s.trim()).filter(Boolean);
+    if(lines3.length){ lines3.forEach(l=>addFTItem('top3',l,'')); }
+    else { addFTItem('top3','',''); }
+  }
   // Flexible TOPs zurücksetzen
   document.getElementById('flex-tops').innerHTML=''; ftNextId=0; beschN=0;
   // Alle TOPs ab 4 aus der Einladung einlesen
@@ -1056,8 +1136,8 @@ function genProtokoll(){
   const prMember=getMembers().find(m=>String(m.id)===String(prId));
   const prName=prMember?prMember.name:'—';
 
-  // TOPs 1–3 (fix)
-  const [t1,t2,t3]=['top1','top2','top3'].map(id=>document.getElementById(id).value.trim());
+  // TOPs 1–2 (fix, Freitext); TOP 3 strukturiert
+  const [t1,t2]=['top1','top2'].map(id=>document.getElementById(id).value.trim());
   const tverschiedenes=document.getElementById('top-verschiedenes').value.trim();
 
   // Flexible TOPs + Beschlüsse
@@ -1079,7 +1159,7 @@ function genProtokoll(){
         :'<p style="color:#aaa">&ndash;</p>';
       return topHead+bHtml;
     } else {
-      return topHead+(ft.content?bulletLinesSimple(ft.content):'<p style="color:#aaa">&ndash;</p>');
+      return topHead+renderStructuredItemsHtml(ft.items);
     }
   }).join('\n');
   const vNum=flexTopsData.length+4;
@@ -1105,7 +1185,7 @@ function genProtokoll(){
 <p class="top-content">${esc(t2)||'Die Beschlussfähigkeit wird festgestellt.'}</p>
 
 <p class="top-head"><strong>TOP 3&nbsp;&nbsp;&nbsp;&nbsp;Berichte über die Tätigkeit des Vorstandes sowie zu Gesprächen mit Mitarbeitern, mit Vertretern der Abteilungen und mit der Geschäftsführung</strong></p>
-${t3 ? bulletLinesSimple(t3) : '<p class="bullet-line" style="color:#aaa">&ndash;</p>'}
+${renderStructuredItemsHtml(getItemsFromContainer('ft-items-top3'))}
 
 ${flexHtml}
 
@@ -1652,7 +1732,7 @@ function clearForm(){
   buildTimeSelect('p-ende','12:00');
   document.getElementById('top1').value='Die TO wird bestätigt.';
   document.getElementById('top2').value='Die Beschlussfähigkeit wird festgestellt.';
-  document.getElementById('top3').value='';
+  const rc3=document.getElementById('ft-items-top3'); if(rc3){rc3.innerHTML=''; addFTItem('top3','','');}
   document.getElementById('top-verschiedenes').value='';
   document.getElementById('flex-tops').innerHTML=''; ftNextId=0; beschN=0;
   initFlexTops();
